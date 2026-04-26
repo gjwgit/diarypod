@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
@@ -22,7 +21,10 @@ import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/entry_tile.dart';
 
 class ListScreen extends StatefulWidget {
-  const ListScreen({super.key, this.initialFilter = DiaryTimeFilter.pastAndToday});
+  const ListScreen({
+    super.key,
+    this.initialFilter = DiaryTimeFilter.pastAndToday,
+  });
 
   final DiaryTimeFilter initialFilter;
 
@@ -79,8 +81,7 @@ class _ListScreenState extends State<ListScreen> {
       barrierDismissible: false,
       builder: (_) => EntryEdit(
         entry: _query.trim().isNotEmpty
-            ? AppProvider.newEntry()
-                .copyWith(title: _query.trim())
+            ? AppProvider.newEntry().copyWith(title: _query.trim())
             : null,
       ),
     );
@@ -90,9 +91,9 @@ class _ListScreenState extends State<ListScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -114,9 +115,9 @@ class _ListScreenState extends State<ListScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -131,9 +132,7 @@ class _ListScreenState extends State<ListScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete entry?'),
-        content: Text(
-          '"${entry.title}" will be permanently removed.',
-        ),
+        content: Text('"${entry.title}" will be permanently removed.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -152,9 +151,9 @@ class _ListScreenState extends State<ListScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -179,7 +178,8 @@ class _ListScreenState extends State<ListScreen> {
     );
   }
 
-  bool get _hasFilter => _timeFilter != DiaryTimeFilter.all || _tagFilter.isNotEmpty;
+  bool get _hasFilter =>
+      _timeFilter != DiaryTimeFilter.all || _tagFilter.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -227,26 +227,24 @@ class _ListScreenState extends State<ListScreen> {
                 ),
               ),
               const Gap(8),
-              MarkdownTooltip(
+              const MarkdownTooltip(
                 message:
                     '**Search tips**\n\n'
                     '- Plain text searches title, notes, location and tags\n'
                     '- Use `tag:health` to filter by a specific tag\n'
                     '- Future events are shown with a blue badge\n'
                     '- Use the filter button to narrow by type or tag',
-                child: const Icon(Icons.help_outline, size: 18),
+                child: Icon(Icons.help_outline, size: 18),
               ),
               MarkdownTooltip(
-                message:
-                    '**Add entry**\n\nCreate a new diary entry.',
+                message: '**Add entry**\n\nCreate a new diary entry.',
                 child: IconButton(
                   icon: const Icon(Icons.add_circle_outline, size: 20),
                   onPressed: () => _addEntry(context, provider),
                 ),
               ),
               MarkdownTooltip(
-                message:
-                    '**Filter**\n\nFilter by past/future or by tags.',
+                message: '**Filter**\n\nFilter by past/future or by tags.',
                 child: IconButton(
                   icon: Badge(
                     isLabelVisible: _hasFilter,
@@ -268,15 +266,13 @@ class _ListScreenState extends State<ListScreen> {
               children: [
                 if (_timeFilter != DiaryTimeFilter.all)
                   FilterChip(
-                    label: Text(
-                      switch (_timeFilter) {
-                        DiaryTimeFilter.past => 'Past',
-                        DiaryTimeFilter.today => 'Today',
-                        DiaryTimeFilter.pastAndToday => 'Past & Today',
-                        DiaryTimeFilter.upcoming => 'Upcoming',
-                        DiaryTimeFilter.all => '',
-                      },
-                    ),
+                    label: Text(switch (_timeFilter) {
+                      DiaryTimeFilter.past => 'Past',
+                      DiaryTimeFilter.today => 'Today',
+                      DiaryTimeFilter.pastAndToday => 'Past & Today',
+                      DiaryTimeFilter.upcoming => 'Upcoming',
+                      DiaryTimeFilter.all => '',
+                    }),
                     selected: true,
                     onSelected: (_) {
                       setState(() => _timeFilter = DiaryTimeFilter.all);
@@ -289,8 +285,9 @@ class _ListScreenState extends State<ListScreen> {
                     selected: true,
                     onSelected: (_) {
                       setState(
-                        () => _tagFilter =
-                            _tagFilter.where((x) => x != t).toList(),
+                        () => _tagFilter = _tagFilter
+                            .where((x) => x != t)
+                            .toList(),
                       );
                       _savePrefs();
                     },
@@ -301,9 +298,7 @@ class _ListScreenState extends State<ListScreen> {
 
         // ── List ─────────────────────────────────────────────────────
         if (provider.loading)
-          const Expanded(
-            child: Center(child: CircularProgressIndicator()),
-          )
+          const Expanded(child: Center(child: CircularProgressIndicator()))
         else if (entries.isEmpty)
           Expanded(
             child: Center(
@@ -322,8 +317,7 @@ class _ListScreenState extends State<ListScreen> {
                         : 'No diary entries yet.\nTap + to add one.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color:
-                          Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -338,8 +332,7 @@ class _ListScreenState extends State<ListScreen> {
               itemBuilder: (_, i) => EntryTile(
                 entry: entries[i],
                 onTap: () => _editEntry(context, provider, entries[i]),
-                onDelete: () =>
-                    _deleteEntry(context, provider, entries[i]),
+                onDelete: () => _deleteEntry(context, provider, entries[i]),
               ),
             ),
           ),
@@ -386,15 +379,9 @@ class _FilterSheetState extends State<_FilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Filter',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Filter', style: Theme.of(context).textTheme.titleLarge),
           const Gap(16),
-          Text(
-            'Show',
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
+          Text('Show', style: Theme.of(context).textTheme.labelLarge),
           const Gap(8),
           Wrap(
             spacing: 8,
@@ -433,10 +420,7 @@ class _FilterSheetState extends State<_FilterSheet> {
           ),
           if (widget.allTags.isNotEmpty) ...[
             const Gap(16),
-            Text(
-              'Tags',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+            Text('Tags', style: Theme.of(context).textTheme.labelLarge),
             const Gap(8),
             Wrap(
               spacing: 8,

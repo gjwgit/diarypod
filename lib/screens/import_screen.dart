@@ -20,7 +20,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
-
 import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
@@ -42,14 +41,14 @@ class _ImportScreenState extends State<ImportScreen> {
   bool _exportError = false;
 
   void _setImportMsg(String msg, {bool error = false}) => setState(() {
-        _importMsg = msg;
-        _importError = error;
-      });
+    _importMsg = msg;
+    _importError = error;
+  });
 
   void _setExportMsg(String msg, {bool error = false}) => setState(() {
-        _exportMsg = msg;
-        _exportError = error;
-      });
+    _exportMsg = msg;
+    _exportError = error;
+  });
 
   String _ts() {
     final now = DateTime.now();
@@ -85,8 +84,9 @@ class _ImportScreenState extends State<ImportScreen> {
         return;
       }
       final List<dynamic> raw = jsonDecode(utf8.decode(bytes));
-      final incoming =
-          raw.map((e) => DiaryEntry.fromJson(e as Map<String, dynamic>)).toList();
+      final incoming = raw
+          .map((e) => DiaryEntry.fromJson(e as Map<String, dynamic>))
+          .toList();
       if (incoming.isEmpty) {
         _setImportMsg('No entries found in "${file.name}".', error: true);
         setState(() => _loading = false);
@@ -113,9 +113,7 @@ class _ImportScreenState extends State<ImportScreen> {
   /// Each heading must start with `* YYYYMMDD_HHMM DAYNAME REST` where REST
   /// becomes the entry title.  Lines between headings become the note.
   static List<DiaryEntry> _parseOrg(String content) {
-    final headingRe = RegExp(
-      r'^\*+\s+(\d{8})_(\d{4})\s+\w{2,4}\s+(.*)',
-    );
+    final headingRe = RegExp(r'^\*+\s+(\d{8})_(\d{4})\s+\w{2,4}\s+(.*)');
     final entries = <DiaryEntry>[];
     DiaryEntry? current;
     final noteLines = <String>[];
@@ -221,8 +219,9 @@ class _ImportScreenState extends State<ImportScreen> {
       _exportMsg = null;
     });
     try {
-      final json = const JsonEncoder.withIndent('  ')
-          .convert(provider.entries.map((e) => e.toJson()).toList());
+      final json = const JsonEncoder.withIndent(
+        '  ',
+      ).convert(provider.entries.map((e) => e.toJson()).toList());
       final bytes = utf8.encode(json);
       final fileName = 'diarypod_backup_${_ts()}.json';
       if (kIsWeb) {
@@ -373,10 +372,7 @@ class _ImportScreenState extends State<ImportScreen> {
                 ),
               if (e.hasNote) ...[
                 pw.SizedBox(height: 4),
-                pw.Text(
-                  e.note,
-                  style: const pw.TextStyle(fontSize: 10),
-                ),
+                pw.Text(e.note, style: const pw.TextStyle(fontSize: 10)),
               ],
               pw.SizedBox(height: 10),
               pw.Divider(color: PdfColors.grey300),
@@ -409,9 +405,7 @@ class _ImportScreenState extends State<ImportScreen> {
       }
     } catch (e, st) {
       debugPrint('[Export PDF] $e\n$st');
-      messenger.showSnackBar(
-        SnackBar(content: Text('PDF export failed: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('PDF export failed: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }

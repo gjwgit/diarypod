@@ -20,8 +20,7 @@ const String importExportTitle = 'Import / Export';
 
 // ── Nav tooltips ─────────────────────────────────────────────────────────────
 
-const String listTooltip =
-    '**Diary**\n\nBrowse and search your diary entries.';
+const String listTooltip = '**Diary**\n\nBrowse and search your diary entries.';
 
 const String upcomingTooltip =
     '**Upcoming**\n\nView future diary entries and scheduled events.';

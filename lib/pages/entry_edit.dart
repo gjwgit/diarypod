@@ -10,9 +10,9 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -139,8 +139,7 @@ class _EntryEditState extends State<EntryEdit> {
                   ),
                   const Gap(8),
                   MarkdownTooltip(
-                    message:
-                        '**Pick Date**\n\nChoose the event date and time.',
+                    message: '**Pick Date**\n\nChoose the event date and time.',
                     child: IconButton(
                       icon: const Icon(Icons.calendar_today_outlined),
                       onPressed: _pickDate,
@@ -152,8 +151,7 @@ class _EntryEditState extends State<EntryEdit> {
 
               // ── Title ────────────────────────────────────────────────
               MarkdownTooltip(
-                message:
-                    '**Title**\n\nA short headline for this diary entry.',
+                message: '**Title**\n\nA short headline for this diary entry.',
                 child: TextField(
                   controller: _title,
                   autofocus: true,
@@ -173,10 +171,7 @@ class _EntryEditState extends State<EntryEdit> {
                 children: [
                   Text(
                     'Notes',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                   ),
                   const Spacer(),
                   TextButton.icon(
@@ -246,10 +241,7 @@ class _EntryEditState extends State<EntryEdit> {
               // ── Tags ─────────────────────────────────────────────────
               Text(
                 'Tags',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: cs.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               ),
               const Gap(4),
               TagField(
@@ -284,7 +276,7 @@ class _EntryEditState extends State<EntryEdit> {
         ),
         FilledButton(
           onPressed: _title.text.trim().isEmpty ? null : _save,
-        child: Text(_isNew ? 'Add' : 'Save'),
+          child: Text(_isNew ? 'Add' : 'Save'),
         ),
       ],
     );

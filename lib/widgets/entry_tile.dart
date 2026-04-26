@@ -11,7 +11,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_markdown/flutter_markdown.dart';
-
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
@@ -195,42 +194,42 @@ class EntryTile extends StatelessWidget {
                               alignment: Alignment.topLeft,
                               maxHeight: double.infinity,
                               child: MarkdownBody(
-                              data: entry.note,
-                              shrinkWrap: true,
-                              styleSheet: MarkdownStyleSheet(
-                                p: TextStyle(
-                                  fontSize: 12,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h1: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h2: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h3: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                code: TextStyle(
-                                  fontSize: 11,
-                                  color: cs.onSurfaceVariant,
-                                  backgroundColor:
-                                      cs.surfaceContainerHighest,
-                                ),
-                                blockquote: TextStyle(
-                                  fontSize: 12,
-                                  color: cs.onSurfaceVariant
-                                      .withValues(alpha: 0.7),
-                                  fontStyle: FontStyle.italic,
+                                data: entry.note,
+                                shrinkWrap: true,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                    fontSize: 12,
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                  h1: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                  h2: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                  h3: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                  code: TextStyle(
+                                    fontSize: 11,
+                                    color: cs.onSurfaceVariant,
+                                    backgroundColor: cs.surfaceContainerHighest,
+                                  ),
+                                  blockquote: TextStyle(
+                                    fontSize: 12,
+                                    color: cs.onSurfaceVariant.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
                               ),
-                            ),
                             ),
                           ),
                         ),

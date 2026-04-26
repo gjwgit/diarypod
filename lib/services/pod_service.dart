@@ -11,6 +11,7 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+
 import 'package:solidpod/solidpod.dart';
 
 import 'package:diarypod/constants/app.dart';
@@ -27,7 +28,7 @@ class PodService {
   static Future<List<DiaryEntry>> load() async {
     try {
       final content = await readPod(diaryFilePathSuffix);
-      if (content == null || content.isEmpty) return [];
+      if (content.isEmpty) return [];
       return _parse(content);
     } catch (e) {
       debugPrint('[PodService.load] $e');
@@ -66,9 +67,7 @@ class PodService {
     final re = RegExp(r'<#[^>]+> [^ ]+ "(.+)" \.$', multiLine: true);
     for (final m in re.allMatches(ttl)) {
       try {
-        final raw = m.group(1)!
-            .replaceAll('\\"', '"')
-            .replaceAll('\\\\', '\\');
+        final raw = m.group(1)!.replaceAll('\\"', '"').replaceAll('\\\\', '\\');
         final map = jsonDecode(raw) as Map<String, dynamic>;
         entries.add(DiaryEntry.fromJson(map));
       } catch (e) {

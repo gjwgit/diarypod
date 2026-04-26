@@ -57,9 +57,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -81,9 +81,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -117,9 +117,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         await provider.saveToPod();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Save failed: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
         }
       }
     }
@@ -180,9 +180,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               Expanded(
                 child: Text(
-                  selected != null
-                      ? _formatDay(selected)
-                      : 'Select a day',
+                  selected != null ? _formatDay(selected) : 'Select a day',
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -212,9 +210,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
 
         if (provider.loading)
-          const Expanded(
-            child: Center(child: CircularProgressIndicator()),
-          )
+          const Expanded(child: Center(child: CircularProgressIndicator()))
         else if (dayEntries.isEmpty)
           Expanded(
             child: Center(
@@ -242,10 +238,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               itemCount: dayEntries.length,
               itemBuilder: (_, i) => EntryTile(
                 entry: dayEntries[i],
-                onTap: () =>
-                    _editEntry(context, provider, dayEntries[i]),
-                onDelete: () =>
-                    _deleteEntry(context, provider, dayEntries[i]),
+                onTap: () => _editEntry(context, provider, dayEntries[i]),
+                onDelete: () => _deleteEntry(context, provider, dayEntries[i]),
               ),
             ),
           ),
@@ -255,12 +249,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   String _formatDay(DateTime d) {
     final months = [
-      '', 'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      '',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     final days = [
-      '', 'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-      'Friday', 'Saturday', 'Sunday',
+      '',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
     ];
     return '${days[d.weekday]}  ${d.day} ${months[d.month]} ${d.year}';
   }

@@ -11,7 +11,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart';
 
 import 'package:diarypod/constants/app.dart';
@@ -70,13 +69,13 @@ class _AppScaffoldState extends State<AppScaffold> {
           title: listTitle,
           icon: Icons.book_outlined,
           tooltip: listTooltip,
-          child: const ListScreen(),
+          child: ListScreen(),
         ),
         SolidMenuItem(
           title: upcomingTitle,
           icon: Icons.event_outlined,
           tooltip: upcomingTooltip,
-          child: const UpcomingScreen(),
+          child: UpcomingScreen(),
         ),
         SolidMenuItem(
           title: calendarTitle,
@@ -99,8 +98,7 @@ class _AppScaffoldState extends State<AppScaffold> {
         securityKeyStatus: SolidSecurityKeyStatus(
           isKeySaved: _isKeySaved,
           title: '$appName Security Keys',
-          onKeyStatusChanged: (hasKey) =>
-              setState(() => _isKeySaved = hasKey),
+          onKeyStatusChanged: (hasKey) => setState(() => _isKeySaved = hasKey),
         ),
       ),
     );

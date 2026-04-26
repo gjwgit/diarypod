@@ -14,5 +14,5 @@ import 'package:diarypod/services/app_provider.dart';
 /// Thin wrapper around [ListScreen] defaulting to the upcoming filter.
 class UpcomingScreen extends ListScreen {
   const UpcomingScreen({super.key})
-      : super(initialFilter: DiaryTimeFilter.upcoming);
+    : super(initialFilter: DiaryTimeFilter.upcoming);
 }

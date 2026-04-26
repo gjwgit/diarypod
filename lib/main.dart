@@ -11,7 +11,6 @@ library;
 import 'package:flutter/material.dart';
 
 import 'package:provider/provider.dart';
-import 'package:solidpod/solidpod.dart';
 import 'package:solidui/solidui.dart';
 
 import 'package:diarypod/app_scaffold.dart';
@@ -22,10 +21,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SolidSecurityKeyCentralManager.instance;
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AppProvider(),
-      child: const _App(),
-    ),
+    ChangeNotifierProvider(create: (_) => AppProvider(), child: const _App()),
   );
 }
 

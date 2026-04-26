@@ -9,6 +9,7 @@
 library;
 
 import 'package:flutter/foundation.dart';
+
 import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
