@@ -81,6 +81,16 @@ class EntryTile extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
+                        DateFormat('EEE').format(entry.eventDate),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isFuture
+                              ? cs.onPrimary.withValues(alpha: 0.9)
+                              : cs.onSecondaryContainer,
+                        ),
+                      ),
+                      Text(
                         entry.eventDate.day.toString(),
                         style: TextStyle(
                           fontSize: 18,

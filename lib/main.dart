@@ -72,6 +72,8 @@ class _AppState extends State<_App> {
         required: false,
         appDirectory: appDir,
         title: appName.toUpperCase(),
+        image: const AssetImage('assets/images/app_image.jpg'),
+        logo: const AssetImage('assets/images/app_icon.png'),
         link: 'https://github.com/gjwgit/diarypod',
         child: const AppScaffold(),
       ),
