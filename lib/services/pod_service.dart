@@ -1,6 +1,6 @@
 /// PodService — encrypted TTL read/write for DairyPod.
 ///
-// Time-stamp: <2026-04-26>
+// Time-stamp: <Thursday 2026-04-30 09:31:07 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -20,7 +20,9 @@ import 'package:diarypod/models/diary_entry.dart';
 class PodService {
   PodService._();
 
-  static const _predicate = 'https://schema.org/diary';
+  static const _predicate =
+      'https://schema.org/'
+      'diary';
 
   /// Load diary entries from the Pod.
   ///
