@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Fix lint issues [0.1.2 20260430 gjw]
 + Support basic diary functionality [0.1.1 20260426 gjw]
 
 ## 0.1 Initial Shell App

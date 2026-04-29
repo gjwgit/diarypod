@@ -37,12 +37,14 @@ class _AppScaffoldState extends State<AppScaffold> {
   }
 
   Future<void> _init() async {
+    if (!mounted) return;
+    // Capture context-dependent objects before any await.
+    final provider = context.read<AppProvider>();
     // Load data from Pod.
-    if (mounted) {
-      await context.read<AppProvider>().loadFromPod();
-    }
+    await provider.loadFromPod();
     // Initialise encryption keys.
     try {
+      if (!mounted) return;
       await getKeyFromUserIfRequired(context, widget);
       if (!mounted) return;
       setState(() => _isKeySaved = true);

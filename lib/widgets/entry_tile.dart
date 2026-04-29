@@ -50,7 +50,6 @@ class EntryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final dateFmt = DateFormat('EEE d MMM yyyy');
     final timeFmt = DateFormat('HH:mm');
     final isFuture = entry.isFuture;
 

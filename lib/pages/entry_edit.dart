@@ -66,7 +66,7 @@ class _EntryEditState extends State<EntryEdit> {
       firstDate: DateTime(now.year - 10),
       lastDate: DateTime(now.year + 5),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_eventDate),
