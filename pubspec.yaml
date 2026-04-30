@@ -18,7 +18,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  file_picker: ^10.3.10
+  file_picker: ^11.0.2
   flutter_markdown: ^0.7.6
   gap: ^3.0.1
   intl: ^0.20.2

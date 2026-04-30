@@ -1,6 +1,6 @@
 /// DiaryIO — static import/export helpers for DiaryPod.
 ///
-// Time-stamp: <2026-04-30>
+// Time-stamp: <Thursday 2026-04-30 12:33:10 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -39,7 +39,7 @@ class DiaryIO {
     BuildContext context,
     AppProvider provider,
   ) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       dialogTitle: 'Select DiaryPod JSON backup',
       type: FileType.any,
       withData: true,
@@ -116,7 +116,7 @@ class DiaryIO {
     BuildContext context,
     AppProvider provider,
   ) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       dialogTitle: 'Select Org diary file',
       type: FileType.any,
       withData: true,
@@ -144,7 +144,7 @@ class DiaryIO {
     final json = const JsonEncoder.withIndent(
       '  ',
     ).convert(provider.entries.map((e) => e.toJson()).toList());
-    final savePath = await FilePicker.platform.saveFile(
+    final savePath = await FilePicker.saveFile(
       dialogTitle: 'Save JSON backup',
       fileName: 'diarypod_backup_${_ts()}.json',
       type: FileType.custom,
@@ -175,7 +175,7 @@ class DiaryIO {
       buf.writeln('---');
       buf.writeln();
     }
-    final savePath = await FilePicker.platform.saveFile(
+    final savePath = await FilePicker.saveFile(
       dialogTitle: 'Save Markdown file',
       fileName: 'diarypod_diary_${_ts()}.md',
       type: FileType.custom,
@@ -261,7 +261,7 @@ class DiaryIO {
       return null; // web: printed via dialog, no file path
     }
 
-    final savePath = await FilePicker.platform.saveFile(
+    final savePath = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,
       type: FileType.custom,
