@@ -1,10 +1,10 @@
 /// DiaryPod — private encrypted diary on your Solid Pod.
 ///
-// Time-stamp: <Thursday 2026-04-30 12:01:02 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-04-30 12:29:28 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
-/// Licensed under the GNU General Public License, Version 3
+/// Licensed under the GNU General Public License, Version 3 (the "License").
 ///
 /// License: https://opensource.org/license/gpl-3-0
 //
@@ -34,7 +34,6 @@ import 'package:window_manager/window_manager.dart';
 import 'package:diarypod/app_scaffold.dart';
 import 'package:diarypod/constants/app.dart';
 import 'package:diarypod/services/app_provider.dart';
-import 'package:diarypod/utils/is_desktop.dart';
 
 // 20260402 gjw Below is the main entry point for the application.  For main()
 // we require [async] because we asynchronously [await] the window manager as
