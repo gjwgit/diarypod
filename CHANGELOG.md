@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Support snap build [0.1.5 20260501 gjw]
 + Update solidui for is_desktop [0.1.4 20260430 gjw]
 + Improved NOTES editor with emacs shortcuts [0.1.3 20260430 gjw]
 + Fix lint issues [0.1.2 20260430 gjw]
