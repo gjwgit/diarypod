@@ -13,6 +13,38 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
+/// A labelled section header with an optional [MarkdownTooltip] info icon.
+/// Matches the todopod editSectionLabel style.
+Widget editSectionLabel(BuildContext context, String text, {String? tooltip}) {
+  final label = Text(
+    text,
+    style: TextStyle(
+      color: Theme.of(context).colorScheme.primary,
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+      letterSpacing: 0.5,
+    ),
+  );
+  if (tooltip == null) return label;
+
+  return Row(
+    children: [
+      label,
+      const Gap(4),
+      MarkdownTooltip(
+        message: tooltip,
+        child: Icon(
+          Icons.info_outline,
+          size: 13,
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+        ),
+      ),
+    ],
+  );
+}
+
 /// Displays the current [tags] as chips and an autocomplete text field
 /// for adding new ones.
 class TagField extends StatefulWidget {

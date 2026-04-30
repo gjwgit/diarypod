@@ -1,6 +1,6 @@
-/// EntryEdit — dialog for creating and editing diary entries.
+/// EntryEdit — full-screen page for creating and editing diary entries.
 ///
-// Time-stamp: <2026-04-26>
+// Time-stamp: <Thursday 2026-04-30 09:00:00 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -13,12 +13,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
-import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:diarypod/constants/tooltips.dart';
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/services/app_provider.dart';
+import 'package:diarypod/widgets/emacs_text_field.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
 class EntryEdit extends StatefulWidget {
@@ -105,30 +106,49 @@ class _EntryEditState extends State<EntryEdit> {
     final cs = Theme.of(context).colorScheme;
     final provider = context.read<AppProvider>();
     final fmt = DateFormat('EEE d MMM yyyy  HH:mm');
+    final canSave = _title.text.trim().isNotEmpty;
 
-    return AlertDialog(
-      title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Event date/time ──────────────────────────────────────
-              Row(
-                children: [
-                  Expanded(
-                    child: MarkdownTooltip(
-                      message:
-                          '**Event Date**\n\nThe date and time of this event. '
-                          'Future dates mark the entry as scheduled.',
+    return Scaffold(
+      appBar: AppBar(
+        leading: TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        leadingWidth: 80,
+        title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: canSave ? _save : null,
+              child: Text(_isNew ? 'Add' : 'Save'),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // ── Date + Title ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Date/time.
+                editSectionLabel(
+                  context,
+                  'Date & Time',
+                  tooltip: entryDateTooltip,
+                ),
+                const Gap(8),
+                Row(
+                  children: [
+                    Expanded(
                       child: InkWell(
                         onTap: _pickDate,
                         borderRadius: BorderRadius.circular(4),
                         child: InputDecorator(
                           decoration: const InputDecoration(
-                            labelText: 'Event date & time',
                             border: OutlineInputBorder(),
                             isDense: true,
                           ),
@@ -136,149 +156,135 @@ class _EntryEditState extends State<EntryEdit> {
                         ),
                       ),
                     ),
-                  ),
-                  const Gap(8),
-                  MarkdownTooltip(
-                    message: '**Pick Date**\n\nChoose the event date and time.',
-                    child: IconButton(
-                      icon: const Icon(Icons.calendar_today_outlined),
-                      onPressed: _pickDate,
-                    ),
-                  ),
-                ],
-              ),
-              const Gap(12),
-
-              // ── Title ────────────────────────────────────────────────
-              MarkdownTooltip(
-                message: '**Title**\n\nA short headline for this diary entry.',
-                child: TextField(
+                  ],
+                ),
+                const Gap(16),
+                // Title.
+                editSectionLabel(context, 'Title', tooltip: entryTitleTooltip),
+                const Gap(8),
+                TextField(
                   controller: _title,
                   autofocus: true,
                   onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
-                    labelText: 'Title *',
                     border: OutlineInputBorder(),
                     isDense: true,
+                    hintText: 'What happened?',
                   ),
                   textCapitalization: TextCapitalization.sentences,
                 ),
-              ),
-              const Gap(12),
+              ],
+            ),
+          ),
 
-              // ── Notes ─────────────────────────────────────────────────
-              Row(
+          // ── Notes (expanded) ────────────────────────────────────────
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Notes',
-                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  Row(
+                    children: [
+                      editSectionLabel(
+                        context,
+                        'Notes',
+                        tooltip: entryNotesTooltip,
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () =>
+                            setState(() => _showPreview = !_showPreview),
+                        icon: Icon(
+                          _showPreview
+                              ? Icons.edit_outlined
+                              : Icons.preview_outlined,
+                          size: 16,
+                        ),
+                        label: Text(_showPreview ? 'Edit' : 'Preview'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () =>
-                        setState(() => _showPreview = !_showPreview),
-                    icon: Icon(
-                      _showPreview
-                          ? Icons.edit_outlined
-                          : Icons.preview_outlined,
-                      size: 16,
-                    ),
-                    label: Text(_showPreview ? 'Edit' : 'Preview'),
-                    style: TextButton.styleFrom(
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                    ),
+                  const Gap(8),
+                  Expanded(
+                    child: _showPreview
+                        ? Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: cs.outline),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: _note.text.trim().isEmpty
+                                ? Text(
+                                    'Nothing to preview.',
+                                    style: TextStyle(
+                                      color: cs.onSurfaceVariant,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  )
+                                : SingleChildScrollView(
+                                    child: MarkdownBody(
+                                      data: _note.text,
+                                      shrinkWrap: true,
+                                      styleSheet: MarkdownStyleSheet.fromTheme(
+                                        Theme.of(context),
+                                      ),
+                                    ),
+                                  ),
+                          )
+                        : EmacsTextField(
+                            controller: _note,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: 'Details, thoughts, markdown…',
+                              alignLabelWithHint: true,
+                            ),
+                          ),
                   ),
                 ],
               ),
-              const Gap(4),
-              if (_showPreview) ...[
-                Container(
-                  width: double.infinity,
-                  constraints: const BoxConstraints(minHeight: 120),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: cs.outline),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: _note.text.trim().isEmpty
-                      ? Text(
-                          'Nothing to preview.',
-                          style: TextStyle(
-                            color: cs.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      : MarkdownBody(
-                          data: _note.text,
-                          shrinkWrap: true,
-                          styleSheet: MarkdownStyleSheet.fromTheme(
-                            Theme.of(context),
-                          ),
-                        ),
-                ),
-              ] else ...[
-                MarkdownTooltip(
-                  message:
-                      '**Notes**\n\nMarkdown is supported. Use **bold**, '
-                      '*italic*, `code`, lists, and headings.',
-                  child: TextField(
-                    controller: _note,
-                    decoration: const InputDecoration(
-                      labelText: 'Notes (Markdown)',
-                      border: OutlineInputBorder(),
-                      alignLabelWithHint: true,
-                    ),
-                    minLines: 5,
-                    maxLines: 12,
-                    keyboardType: TextInputType.multiline,
-                    textCapitalization: TextCapitalization.sentences,
-                  ),
-                ),
-              ],
-              const Gap(12),
+            ),
+          ),
 
-              // ── Tags ─────────────────────────────────────────────────
-              Text(
-                'Tags',
-                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-              ),
-              const Gap(4),
-              TagField(
-                tags: _tags,
-                suggestions: provider.allTags,
-                onChanged: (updated) => setState(() => _tags = updated),
-              ),
-              const Gap(12),
-
-              // ── Location ─────────────────────────────────────────────
-              MarkdownTooltip(
-                message:
-                    '**Location**\n\nOptional venue or place for this event.',
-                child: TextField(
+          // ── Tags + Location ─────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                editSectionLabel(context, 'Tags', tooltip: entryTagsTooltip),
+                const Gap(8),
+                TagField(
+                  tags: _tags,
+                  suggestions: provider.allTags,
+                  onChanged: (updated) => setState(() => _tags = updated),
+                ),
+                const Gap(12),
+                editSectionLabel(
+                  context,
+                  'Location',
+                  tooltip: entryLocationTooltip,
+                ),
+                const Gap(8),
+                TextField(
                   controller: _location,
                   decoration: const InputDecoration(
-                    labelText: 'Location (optional)',
                     border: OutlineInputBorder(),
                     isDense: true,
+                    hintText: 'Where did this happen?',
                     prefixIcon: Icon(Icons.place_outlined, size: 18),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: _title.text.trim().isEmpty ? null : _save,
-          child: Text(_isNew ? 'Add' : 'Save'),
-        ),
-      ],
     );
   }
 }

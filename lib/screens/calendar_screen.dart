@@ -70,10 +70,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
     AppProvider provider,
     DiaryEntry entry,
   ) async {
-    final updated = await showDialog<DiaryEntry>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => EntryEdit(entry: entry),
+    final updated = await Navigator.of(context).push<DiaryEntry>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => EntryEdit(entry: entry),
+      ),
     );
     if (updated != null && context.mounted) {
       provider.updateEntry(updated);
