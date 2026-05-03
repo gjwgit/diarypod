@@ -31,6 +31,8 @@ class EmacsTextField extends StatefulWidget {
   final InputDecoration? decoration;
   final TextStyle? style;
   final bool autofocus;
+  final bool expands;
+  final int? minLines;
 
   const EmacsTextField({
     super.key,
@@ -39,6 +41,8 @@ class EmacsTextField extends StatefulWidget {
     this.decoration,
     this.style,
     this.autofocus = false,
+    this.expands = false,
+    this.minLines,
   });
 
   @override
@@ -91,6 +95,7 @@ class _EmacsTextFieldState extends State<EmacsTextField> {
   }
 
   int _prevLine(int at) {
+    final text = _ctrl.text;
     final start = _lineStart(at);
     if (start == 0) return 0;
     final prevEnd = start - 1;
@@ -289,9 +294,9 @@ class _EmacsTextFieldState extends State<EmacsTextField> {
         decoration: widget.decoration,
         style: widget.style,
         autofocus: widget.autofocus,
-        expands: true,
-        maxLines: null,
-        minLines: null,
+        expands: widget.expands,
+        maxLines: widget.expands ? null : null,
+        minLines: widget.expands ? null : (widget.minLines ?? 5),
         keyboardType: TextInputType.multiline,
         textCapitalization: TextCapitalization.sentences,
         textAlignVertical: TextAlignVertical.top,

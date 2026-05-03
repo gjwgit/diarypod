@@ -1,6 +1,6 @@
 /// AppScaffold — main SolidScaffold for DiaryPod.
 ///
-// Time-stamp: <2026-04-26>
+// Time-stamp: <Friday 2026-05-01 14:16:40 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -56,8 +56,6 @@ class _AppScaffoldState extends State<AppScaffold> {
   @override
   Widget build(BuildContext context) {
     return SolidScaffold(
-      showLogin: false,
-      showLogout: false,
       themeToggle: const SolidThemeToggleConfig(enabled: true),
       appBar: const SolidAppBarConfig(
         title: appName,
