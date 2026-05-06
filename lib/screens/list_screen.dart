@@ -225,6 +225,11 @@ class _ListScreenState extends State<ListScreen> {
                     ),
                   ),
                   onChanged: (v) => setState(() => _query = v),
+                  onSubmitted: (v) {
+                    if (v.trim().isNotEmpty) {
+                      _addEntry(context, provider);
+                    }
+                  },
                 ),
               ),
               const Gap(8),

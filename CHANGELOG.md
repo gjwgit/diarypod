@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Default diary entry view is PREVIEW mode [0.1.7 20260506 gjw]
 + Update emacs text field to match todopod [0.1.6 20260503 gjw]
 + Support snap build [0.1.5 20260501 gjw]
 + Update solidui for is_desktop [0.1.4 20260430 gjw]

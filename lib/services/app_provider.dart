@@ -100,7 +100,13 @@ class AppProvider extends ChangeNotifier {
           )
           .toList();
     }
-    result.sort((a, b) => b.eventDate.compareTo(a.eventDate));
+    // Upcoming entries: sort ascending (soonest first).
+    // All other filters: sort descending (most recent first).
+    if (timeFilter == DiaryTimeFilter.upcoming) {
+      result.sort((a, b) => a.eventDate.compareTo(b.eventDate));
+    } else {
+      result.sort((a, b) => b.eventDate.compareTo(a.eventDate));
+    }
     return result;
   }
 

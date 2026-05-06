@@ -23,6 +23,7 @@ const entryNotesTooltip =
     '**Move:** C-a/e line · C-f/b char · C-n/p line · M-f/b word\n\n'
     '**Edit:** C-d del · M-d/M-BS kill-word · C-k kill-line '
     '· C-w kill-sel · C-y yank · M-Enter bullet\n\n'
+    '**Chords:** C-c d insert date (yyyymmdd) · C-x C-s save entry\n\n'
     '**Other:** C-g deselect · C-z/C-/ undo';
 
 const entryTagsTooltip =
