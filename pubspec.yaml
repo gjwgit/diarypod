@@ -21,7 +21,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   emacs_text_field: ^0.1.0
   file_picker: ^11.0.2
-  flutter_markdown: ^0.7.6
+  flutter_markdown_plus: ^1.0.7
   gap: ^3.0.1
   intl: ^0.20.2
   markdown_tooltip: ^0.0.10
