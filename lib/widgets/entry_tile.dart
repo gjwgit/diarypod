@@ -1,6 +1,6 @@
 /// EntryTile — a single diary entry in the list view.
 ///
-// Time-stamp: <2026-04-26>
+// Time-stamp: <Wednesday 2026-05-06 11:47:12 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -28,11 +28,6 @@ class EntryTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
-
-  String _buildTooltip() {
-    if (!entry.hasNote) return 'No notes for this entry.';
-    return '**Notes**\n\n${_preprocessNote(entry.note)}';
-  }
 
   /// Insert blank line before `+` lines that follow a non-blank line.
   String _preprocessNote(String note) {
