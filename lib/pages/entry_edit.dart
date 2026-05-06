@@ -1,6 +1,6 @@
 /// EntryEdit — full-screen page for creating and editing diary entries.
 ///
-// Time-stamp: <Tuesday 2026-05-05 15:24:22 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2026-05-06 15:13:05 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:emacs_text_field/emacs_text_field.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';

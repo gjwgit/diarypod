@@ -87,6 +87,11 @@ class _ListScreenState extends State<ListScreen> {
     );
     if (entry != null && context.mounted) {
       provider.addEntry(entry);
+      // Clear the search so the full list is shown after returning.
+      if (_query.isNotEmpty) {
+        _search.clear();
+        setState(() => _query = '');
+      }
       try {
         await provider.saveToPod();
       } catch (e) {

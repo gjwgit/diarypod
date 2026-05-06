@@ -1,6 +1,6 @@
 /// EntryTile — a single diary entry in the list view.
 ///
-// Time-stamp: <Wednesday 2026-05-06 11:47:12 +1000 Graham Williams>
+// Time-stamp: <Wednesday 2026-05-06 15:14:42 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -10,7 +10,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
@@ -28,19 +28,6 @@ class EntryTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
   });
-
-  /// Insert blank line before `+` lines that follow a non-blank line.
-  String _preprocessNote(String note) {
-    final lines = note.split('\n');
-    final buf = StringBuffer();
-    for (int i = 0; i < lines.length; i++) {
-      if (lines[i].startsWith('+') && i > 0 && lines[i - 1].isNotEmpty) {
-        buf.writeln();
-      }
-      buf.writeln(lines[i]);
-    }
-    return buf.toString().trimRight();
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,7 +1,7 @@
 name: diarypod
 description: "DairyPod — private encrypted diary on your Solid Pod."
 publish_to: 'none'
-version: 0.1.7+3
+version: 0.1.8+3
 
 environment:
   sdk: ^3.11.5
