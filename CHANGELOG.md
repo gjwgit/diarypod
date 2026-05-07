@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Remove scroll listings. Edit mode on search create. [0.1.9 20260508 gjw]
 + Clear search string after saving a new entry [0.1.8 20260506 gjw]
 + Default diary entry view is PREVIEW mode [0.1.7 20260506 gjw]
 + Update emacs text field to match todopod [0.1.6 20260503 gjw]

@@ -83,6 +83,7 @@ class _ListScreenState extends State<ListScreen> {
         entry: _query.trim().isNotEmpty
             ? AppProvider.newEntry().copyWith(title: _query.trim())
             : null,
+        initialPreview: false,
       ),
     );
     if (entry != null && context.mounted) {

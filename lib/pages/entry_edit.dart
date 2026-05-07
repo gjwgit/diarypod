@@ -24,9 +24,14 @@ import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
 class EntryEdit extends StatefulWidget {
+  const EntryEdit({super.key, this.entry, this.initialPreview});
+
   final DiaryEntry? entry;
 
-  const EntryEdit({super.key, this.entry});
+  /// When null (default) the mode is inferred: existing entries open in
+  /// preview, new entries open in edit.  Pass [false] to force edit mode
+  /// even for a pre-populated entry (e.g. created from the search bar).
+  final bool? initialPreview;
 
   @override
   State<EntryEdit> createState() => _EntryEditState();
@@ -46,7 +51,7 @@ class _EntryEditState extends State<EntryEdit> {
   void initState() {
     super.initState();
     // Existing entries open in preview; new entries open in edit mode.
-    _showPreview = !_isNew;
+    _showPreview = widget.initialPreview ?? !_isNew;
     final e = widget.entry;
     _title = TextEditingController(text: e?.title ?? '');
     _note = TextEditingController(text: e?.note ?? '');
@@ -134,13 +139,15 @@ class _EntryEditState extends State<EntryEdit> {
       },
       child: Scaffold(
         appBar: AppBar(
-          leading: TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          leadingWidth: 80,
           title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
           actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: FilledButton(

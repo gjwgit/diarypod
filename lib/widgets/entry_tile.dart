@@ -1,6 +1,6 @@
 /// EntryTile — a single diary entry in the list view.
 ///
-// Time-stamp: <Wednesday 2026-05-06 15:14:42 +1000 Graham Williams>
+// Time-stamp: <Friday 2026-05-08 05:38:53 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -34,10 +34,13 @@ class EntryTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final timeFmt = DateFormat('HH:mm');
     final isFuture = entry.isFuture;
+    final isPast = !isFuture && entry.eventDate.isBefore(DateTime.now());
 
     return Card(
       color: isFuture
           ? cs.primaryContainer.withValues(alpha: 0.35)
+          : isPast
+          ? Colors.grey.withValues(alpha: 0.12)
           : cs.surface,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -52,7 +55,11 @@ class EntryTile extends StatelessWidget {
                 width: 52,
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 decoration: BoxDecoration(
-                  color: isFuture ? cs.primary : cs.secondaryContainer,
+                  color: isFuture
+                      ? cs.primary
+                      : isPast
+                      ? cs.onSurface.withValues(alpha: 0.10)
+                      : cs.secondaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -119,9 +126,12 @@ class EntryTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             entry.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
+                              color: isPast
+                                  ? cs.onSurface.withValues(alpha: 0.45)
+                                  : null,
                             ),
                           ),
                         ),
@@ -168,41 +178,45 @@ class EntryTile extends StatelessWidget {
                       const Gap(4),
                       SizedBox(
                         height: 60,
-                        child: SingleChildScrollView(
-                          child: MarkdownBody(
-                            data: entry.note,
-                            shrinkWrap: true,
-                            styleSheet: MarkdownStyleSheet(
-                              p: TextStyle(
-                                fontSize: 12,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              h1: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              h2: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              h3: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: cs.onSurfaceVariant,
-                              ),
-                              code: TextStyle(
-                                fontSize: 11,
-                                color: cs.onSurfaceVariant,
-                                backgroundColor: cs.surfaceContainerHighest,
-                              ),
-                              blockquote: TextStyle(
-                                fontSize: 12,
-                                color: cs.onSurfaceVariant.withValues(
-                                  alpha: 0.7,
+                        child: ClipRect(
+                          child: OverflowBox(
+                            alignment: Alignment.topLeft,
+                            maxHeight: double.infinity,
+                            child: MarkdownBody(
+                              data: entry.note,
+                              shrinkWrap: true,
+                              styleSheet: MarkdownStyleSheet(
+                                p: TextStyle(
+                                  fontSize: 12,
+                                  color: cs.onSurfaceVariant,
                                 ),
-                                fontStyle: FontStyle.italic,
+                                h1: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                h2: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                h3: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                code: TextStyle(
+                                  fontSize: 11,
+                                  color: cs.onSurfaceVariant,
+                                  backgroundColor: cs.surfaceContainerHighest,
+                                ),
+                                blockquote: TextStyle(
+                                  fontSize: 12,
+                                  color: cs.onSurfaceVariant.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
                             ),
                           ),
