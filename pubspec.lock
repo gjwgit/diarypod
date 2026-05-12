@@ -271,18 +271,18 @@ packages:
     dependency: transitive
     description:
       name: flutter_secure_storage
-      sha256: "8b302d17096ba88f911b7eb317c71d5e691da60a259549f42b38c658d1776d87"
+      sha256: "6848263f9744072d0977347c383fb8b57d9780319a6bf5238b5a2866a029de62"
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.0"
+    version: "10.2.0"
   flutter_secure_storage_darwin:
     dependency: transitive
     description:
       name: flutter_secure_storage_darwin
-      sha256: "3af15a3cb2bf5b8b776832bd01776f8018766aece55623176e28b406481fb320"
+      sha256: "67cd1ff671add31dc13e45194398187a04bb63804b37fa47866afae296d73fcb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.3.1"
   flutter_secure_storage_linux:
     dependency: transitive
     description:
@@ -910,10 +910,10 @@ packages:
     dependency: "direct main"
     description:
       name: solidui
-      sha256: "3620f0e39e5d331d45d1274877cfbd45bc33cd518330c6f582b42b90e33b07ef"
+      sha256: "8ce7299a3df2251fb9dac93233555d04f41cecf6af7f063af6a8516b6ce1ac4e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.38"
+    version: "0.3.42"
   source_span:
     dependency: transitive
     description:
@@ -1070,10 +1070,10 @@ packages:
     dependency: transitive
     description:
       name: version_widget
-      sha256: "1f442f4a0b9f6e8cad96381957f03cbf7f5720da8848b78e44ddd7def5e621a7"
+      sha256: "3c7b4318fbb0ab18ffe25933e9bd2ee3065bcaeca70bedf34367cc9fb4943c3f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.8"
+    version: "1.0.9"
   vm_service:
     dependency: transitive
     description:

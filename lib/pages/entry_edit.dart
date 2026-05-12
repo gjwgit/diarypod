@@ -47,6 +47,15 @@ class _EntryEditState extends State<EntryEdit> {
   late bool _showPreview;
   String? _chordPrefix;
 
+  // Focus nodes for keyboard tab traversal.
+  // _dateFocus is excluded from the Tab order (skipTraversal); it can still
+  // receive focus programmatically (e.g. mouse click / tap).
+  final _titleFocus = FocusNode();
+  final _dateFocus = FocusNode(skipTraversal: true);
+  final _toggleFocus = FocusNode();
+  final _notesFocus = FocusNode();
+  final _tagFocus = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -65,6 +74,11 @@ class _EntryEditState extends State<EntryEdit> {
     _title.dispose();
     _note.dispose();
     _location.dispose();
+    _titleFocus.dispose();
+    _dateFocus.dispose();
+    _toggleFocus.dispose();
+    _notesFocus.dispose();
+    _tagFocus.dispose();
     super.dispose();
   }
 
@@ -159,13 +173,47 @@ class _EntryEditState extends State<EntryEdit> {
         ),
         body: Column(
           children: [
-            // ── Date + Title ────────────────────────────────────────────
+            // ── Title + Date ────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Date/time.
+                  // Title — autofocus, Tab skips Date and moves to Edit/Preview toggle.
+                  editSectionLabel(
+                    context,
+                    'Title',
+                    tooltip: entryTitleTooltip,
+                  ),
+                  const Gap(8),
+                  Focus(
+                    onKeyEvent: (_, event) {
+                      if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                      if (event.logicalKey == LogicalKeyboardKey.tab &&
+                          !HardwareKeyboard.instance.isShiftPressed) {
+                        _toggleFocus.requestFocus();
+                        return KeyEventResult.handled;
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      controller: _title,
+                      focusNode: _titleFocus,
+                      autofocus: true,
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) => setState(() {}),
+                      onSubmitted: (_) => _toggleFocus.requestFocus(),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        hintText: 'What happened?',
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                  ),
+                  const Gap(16),
+                  // Date — focusable via mouse/tap; excluded from Tab order
+                  // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
                   editSectionLabel(
                     context,
                     'Date & Time',
@@ -175,38 +223,52 @@ class _EntryEditState extends State<EntryEdit> {
                   Row(
                     children: [
                       Expanded(
-                        child: InkWell(
-                          onTap: _pickDate,
-                          borderRadius: BorderRadius.circular(4),
-                          child: InputDecorator(
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              isDense: true,
+                        child: Focus(
+                          focusNode: _dateFocus,
+                          onKeyEvent: (_, event) {
+                            if (event is KeyDownEvent) {
+                              if (event.logicalKey ==
+                                      LogicalKeyboardKey.enter ||
+                                  event.logicalKey ==
+                                      LogicalKeyboardKey.space) {
+                                _pickDate();
+                                return KeyEventResult.handled;
+                              }
+                            }
+                            return KeyEventResult.ignored;
+                          },
+                          child: InkWell(
+                            onTap: _pickDate,
+                            borderRadius: BorderRadius.circular(4),
+                            child: Builder(
+                              builder: (ctx) {
+                                final hasFocus = Focus.of(ctx).hasFocus;
+                                return InputDecorator(
+                                  decoration: InputDecoration(
+                                    border: const OutlineInputBorder(),
+                                    isDense: true,
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                        color: Theme.of(
+                                          ctx,
+                                        ).colorScheme.primary,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    filled: hasFocus,
+                                    fillColor: Theme.of(ctx)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withValues(alpha: 0.15),
+                                  ),
+                                  child: Text(fmt.format(_eventDate)),
+                                );
+                              },
                             ),
-                            child: Text(fmt.format(_eventDate)),
                           ),
                         ),
                       ),
                     ],
-                  ),
-                  const Gap(16),
-                  // Title.
-                  editSectionLabel(
-                    context,
-                    'Title',
-                    tooltip: entryTitleTooltip,
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: _title,
-                    autofocus: true,
-                    onChanged: (_) => setState(() {}),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      hintText: 'What happened?',
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
                   ),
                 ],
               ),
@@ -227,19 +289,52 @@ class _EntryEditState extends State<EntryEdit> {
                           tooltip: entryNotesTooltip,
                         ),
                         const Spacer(),
-                        TextButton.icon(
-                          onPressed: () =>
-                              setState(() => _showPreview = !_showPreview),
-                          icon: Icon(
-                            _showPreview
-                                ? Icons.edit_outlined
-                                : Icons.preview_outlined,
-                            size: 16,
-                          ),
-                          label: Text(_showPreview ? 'Edit' : 'Preview'),
-                          style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.zero,
+                        Focus(
+                          onKeyEvent: (_, event) {
+                            if (event is! KeyDownEvent) {
+                              return KeyEventResult.ignored;
+                            }
+                            if (event.logicalKey == LogicalKeyboardKey.enter ||
+                                event.logicalKey == LogicalKeyboardKey.space) {
+                              // "Edit" shown (preview mode) → switch to edit
+                              // and move focus to Notes.
+                              // "Preview" shown (edit mode) → toggle to preview
+                              // and stay on the button.
+                              if (_showPreview) {
+                                setState(() => _showPreview = false);
+                                _notesFocus.requestFocus();
+                              } else {
+                                setState(() => _showPreview = true);
+                                _toggleFocus.requestFocus();
+                              }
+                              return KeyEventResult.handled;
+                            }
+                            if (event.logicalKey == LogicalKeyboardKey.tab &&
+                                !HardwareKeyboard.instance.isShiftPressed) {
+                              if (!_showPreview) {
+                                _notesFocus.requestFocus();
+                              } else {
+                                _tagFocus.requestFocus();
+                              }
+                              return KeyEventResult.handled;
+                            }
+                            return KeyEventResult.ignored;
+                          },
+                          child: TextButton.icon(
+                            focusNode: _toggleFocus,
+                            onPressed: () =>
+                                setState(() => _showPreview = !_showPreview),
+                            icon: Icon(
+                              _showPreview
+                                  ? Icons.edit_outlined
+                                  : Icons.preview_outlined,
+                              size: 16,
+                            ),
+                            label: Text(_showPreview ? 'Edit' : 'Preview'),
+                            style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                            ),
                           ),
                         ),
                       ],
@@ -275,6 +370,7 @@ class _EntryEditState extends State<EntryEdit> {
                             )
                           : EmacsTextField(
                               controller: _note,
+                              focusNode: _notesFocus,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 hintText: 'Details, thoughts, markdown…',
@@ -297,6 +393,7 @@ class _EntryEditState extends State<EntryEdit> {
                   const Gap(8),
                   TagField(
                     tags: _tags,
+                    focusNode: _tagFocus,
                     suggestions: provider.allTags,
                     onChanged: (updated) => setState(() => _tags = updated),
                   ),
