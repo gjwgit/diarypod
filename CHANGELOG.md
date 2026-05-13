@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Add a DUPLICATE function [0.1.11 20260512 gjw]
 + Review focus and tab within EDIT ENTRY [0.1.10 20260512 gjw]
 + Remove scroll listings. Edit mode on search create. [0.1.9 20260508 gjw]
 + Clear search string after saving a new entry [0.1.8 20260506 gjw]

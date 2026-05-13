@@ -21,12 +21,14 @@ class EntryTile extends StatelessWidget {
   final DiaryEntry entry;
   final VoidCallback onTap;
   final VoidCallback onDelete;
+  final VoidCallback onDuplicate;
 
   const EntryTile({
     super.key,
     required this.entry,
     required this.onTap,
     required this.onDelete,
+    required this.onDuplicate,
   });
 
   @override
@@ -40,7 +42,7 @@ class EntryTile extends StatelessWidget {
       color: isFuture
           ? cs.primaryContainer.withValues(alpha: 0.35)
           : isPast
-          ? Colors.grey.withValues(alpha: 0.12)
+          ? const Color(0xFF4CAF50).withValues(alpha: 0.10)
           : cs.surface,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -58,7 +60,7 @@ class EntryTile extends StatelessWidget {
                   color: isFuture
                       ? cs.primary
                       : isPast
-                      ? cs.onSurface.withValues(alpha: 0.10)
+                      ? const Color(0xFF4CAF50).withValues(alpha: 0.25)
                       : cs.secondaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -72,6 +74,8 @@ class EntryTile extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.9)
+                            : isPast
+                            ? const Color(0xFF2E7D32)
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -82,6 +86,8 @@ class EntryTile extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: isFuture
                             ? cs.onPrimary
+                            : isPast
+                            ? const Color(0xFF2E7D32)
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -91,6 +97,8 @@ class EntryTile extends StatelessWidget {
                         fontSize: 11,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.8)
+                            : isPast
+                            ? const Color(0xFF2E7D32).withValues(alpha: 0.85)
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -100,6 +108,8 @@ class EntryTile extends StatelessWidget {
                         fontSize: 10,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.7)
+                            : isPast
+                            ? const Color(0xFF2E7D32).withValues(alpha: 0.75)
                             : cs.onSecondaryContainer.withValues(alpha: 0.7),
                       ),
                     ),
@@ -227,6 +237,17 @@ class EntryTile extends StatelessWidget {
                 ),
               ),
               const Gap(4),
+
+              // ── Duplicate ────────────────────────────────────────────
+              MarkdownTooltip(
+                message:
+                    '**Duplicate**\n\nCopy this entry with the date/time '
+                    'set to now and open it for editing.',
+                child: IconButton(
+                  icon: const Icon(Icons.copy_outlined, size: 18),
+                  onPressed: onDuplicate,
+                ),
+              ),
 
               // ── Delete ──────────────────────────────────────────────
               MarkdownTooltip(

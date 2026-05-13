@@ -14,6 +14,7 @@ import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/entry_edit.dart';
@@ -118,6 +119,38 @@ class _ListScreenState extends State<ListScreen> {
     );
     if (updated != null && context.mounted) {
       provider.updateEntry(updated);
+      try {
+        await provider.saveToPod();
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        }
+      }
+    }
+  }
+
+  Future<void> _duplicateEntry(
+    BuildContext context,
+    AppProvider provider,
+    DiaryEntry entry,
+  ) async {
+    final now = DateTime.now();
+    final duplicate = entry.copyWith(
+      id: const Uuid().v4(),
+      eventDate: now,
+      createdAt: now,
+      modifiedAt: now,
+    );
+    final updated = await Navigator.of(context).push<DiaryEntry>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => EntryEdit(entry: duplicate),
+      ),
+    );
+    if (updated != null && context.mounted) {
+      provider.addEntry(updated);
       try {
         await provider.saveToPod();
       } catch (e) {
@@ -345,6 +378,8 @@ class _ListScreenState extends State<ListScreen> {
                 entry: entries[i],
                 onTap: () => _editEntry(context, provider, entries[i]),
                 onDelete: () => _deleteEntry(context, provider, entries[i]),
+                onDuplicate: () =>
+                    _duplicateEntry(context, provider, entries[i]),
               ),
             ),
           ),
