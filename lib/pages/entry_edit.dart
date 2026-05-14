@@ -11,7 +11,8 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:emacs_text_field/emacs_text_field.dart';
+import 'package:emacs_text_field/emacs_text_field.dart'
+    show EmacsTextField, attachPrimarySelection, writePrimarySelection;
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
@@ -41,6 +42,8 @@ class _EntryEditState extends State<EntryEdit> {
   late final TextEditingController _title;
   late final TextEditingController _note;
   late final TextEditingController _location;
+  late final VoidCallback _removePrimaryTitle;
+  late final VoidCallback _removePrimaryLocation;
   late DateTime _eventDate;
   late List<String> _tags;
   bool get _isNew => widget.entry == null;
@@ -65,12 +68,17 @@ class _EntryEditState extends State<EntryEdit> {
     _title = TextEditingController(text: e?.title ?? '');
     _note = TextEditingController(text: e?.note ?? '');
     _location = TextEditingController(text: e?.location ?? '');
+    // _note is handled by EmacsTextField's own primary selection support.
+    _removePrimaryTitle = attachPrimarySelection(_title);
+    _removePrimaryLocation = attachPrimarySelection(_location);
     _eventDate = e?.eventDate ?? DateTime.now();
     _tags = List<String>.from(e?.tags ?? []);
   }
 
   @override
   void dispose() {
+    _removePrimaryTitle();
+    _removePrimaryLocation();
     _title.dispose();
     _note.dispose();
     _location.dispose();
@@ -357,14 +365,22 @@ class _EntryEditState extends State<EntryEdit> {
                                         fontStyle: FontStyle.italic,
                                       ),
                                     )
-                                  : SingleChildScrollView(
-                                      child: MarkdownBody(
-                                        data: _note.text,
-                                        shrinkWrap: true,
-                                        styleSheet:
-                                            MarkdownStyleSheet.fromTheme(
-                                              Theme.of(context),
-                                            ),
+                                  : SelectionArea(
+                                      onSelectionChanged: (value) {
+                                        final text = value?.plainText ?? '';
+                                        if (text.isNotEmpty) {
+                                          writePrimarySelection(text);
+                                        }
+                                      },
+                                      child: SingleChildScrollView(
+                                        child: MarkdownBody(
+                                          data: _note.text,
+                                          shrinkWrap: true,
+                                          styleSheet:
+                                              MarkdownStyleSheet.fromTheme(
+                                                Theme.of(context),
+                                              ),
+                                        ),
                                       ),
                                     ),
                             )

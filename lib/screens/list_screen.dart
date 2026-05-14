@@ -10,6 +10,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import 'package:emacs_text_field/emacs_text_field.dart'
+    show attachPrimarySelection, writePrimarySelection;
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +37,7 @@ class ListScreen extends StatefulWidget {
 
 class _ListScreenState extends State<ListScreen> {
   final _search = TextEditingController();
+  late final VoidCallback _removePrimarySearch;
   String _query = '';
   late DiaryTimeFilter _timeFilter;
   List<String> _tagFilter = [];
@@ -47,6 +50,7 @@ class _ListScreenState extends State<ListScreen> {
     super.initState();
     _timeFilter = widget.initialFilter;
     _loadPrefs();
+    _removePrimarySearch = attachPrimarySelection(_search);
   }
 
   Future<void> _loadPrefs() async {
@@ -72,6 +76,7 @@ class _ListScreenState extends State<ListScreen> {
 
   @override
   void dispose() {
+    _removePrimarySearch();
     _search.dispose();
     super.dispose();
   }

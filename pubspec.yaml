@@ -1,7 +1,7 @@
 name: diarypod
 description: "DairyPod — private encrypted diary on your Solid Pod."
 publish_to: 'none'
-version: 0.1.11+3
+version: 0.1.12+3
 
 environment:
   sdk: ^3.11.5
@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  emacs_text_field: ^0.1.0
+  emacs_text_field: ^0.1.1
   file_picker: ^11.0.2
   flutter_markdown_plus: ^1.0.7
   gap: ^3.0.1
