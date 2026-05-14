@@ -10,8 +10,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:emacs_text_field/emacs_text_field.dart'
-    show attachPrimarySelection, writePrimarySelection;
+import 'package:emacs_text_field/emacs_text_field.dart';
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
