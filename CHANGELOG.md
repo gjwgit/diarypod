@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Scroll NOTES as we type [0.1.14 20260515 gjw]
 + Fix TAG navigation and move TAG higher [0.1.13 20260515 gjw]
 + Updated mouse selection [0.1.12 20260514 gjw]
 + Add a DUPLICATE function [0.1.11 20260512 gjw]

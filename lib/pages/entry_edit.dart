@@ -1,6 +1,6 @@
 /// EntryEdit — full-screen page for creating and editing diary entries.
 ///
-// Time-stamp: <Wednesday 2026-05-06 15:13:05 +1000 Graham Williams>
+// Time-stamp: <Friday 2026-05-15 16:10:34 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -57,6 +57,7 @@ class _EntryEditState extends State<EntryEdit> {
   final _dateFocus = FocusNode(skipTraversal: true);
   final _toggleFocus = FocusNode();
   final _notesFocus = FocusNode();
+  final _bodyScrollCtrl = ScrollController();
   final _tagFocus = FocusNode();
 
   @override
@@ -86,6 +87,7 @@ class _EntryEditState extends State<EntryEdit> {
     _dateFocus.dispose();
     _toggleFocus.dispose();
     _notesFocus.dispose();
+    _bodyScrollCtrl.dispose();
     _tagFocus.dispose();
     super.dispose();
   }
@@ -179,130 +181,137 @@ class _EntryEditState extends State<EntryEdit> {
             ),
           ],
         ),
-        body: Column(
-          children: [
-            // ── Title + Date ────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title — autofocus, Tab skips Date and moves to Tags.
-                  editSectionLabel(
-                    context,
-                    'Title',
-                    tooltip: entryTitleTooltip,
-                  ),
-                  const Gap(8),
-                  Focus(
-                    onKeyEvent: (_, event) {
-                      if (event is! KeyDownEvent) return KeyEventResult.ignored;
-                      if (event.logicalKey == LogicalKeyboardKey.tab &&
-                          !HardwareKeyboard.instance.isShiftPressed) {
-                        _tagFocus.requestFocus();
-                        return KeyEventResult.handled;
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: TextField(
-                      controller: _title,
-                      focusNode: _titleFocus,
-                      autofocus: true,
-                      textInputAction: TextInputAction.next,
-                      onChanged: (_) => setState(() {}),
-                      onSubmitted: (_) => _tagFocus.requestFocus(),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        hintText: 'What happened?',
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
+        body: SingleChildScrollView(
+          controller: _bodyScrollCtrl,
+          child: Column(
+            children: [
+              // ── Title + Date ────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Title — autofocus, Tab skips Date and moves to Tags.
+                    editSectionLabel(
+                      context,
+                      'Title',
+                      tooltip: entryTitleTooltip,
                     ),
-                  ),
-                  const Gap(16),
-                  // Date — focusable via mouse/tap; excluded from Tab order
-                  // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
-                  editSectionLabel(
-                    context,
-                    'Date & Time',
-                    tooltip: entryDateTooltip,
-                  ),
-                  const Gap(8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Focus(
-                          focusNode: _dateFocus,
-                          onKeyEvent: (_, event) {
-                            if (event is KeyDownEvent) {
-                              if (event.logicalKey ==
-                                      LogicalKeyboardKey.enter ||
-                                  event.logicalKey ==
-                                      LogicalKeyboardKey.space) {
-                                _pickDate();
-                                return KeyEventResult.handled;
+                    const Gap(8),
+                    Focus(
+                      onKeyEvent: (_, event) {
+                        if (event is! KeyDownEvent) {
+                          return KeyEventResult.ignored;
+                        }
+                        if (event.logicalKey == LogicalKeyboardKey.tab &&
+                            !HardwareKeyboard.instance.isShiftPressed) {
+                          _tagFocus.requestFocus();
+                          return KeyEventResult.handled;
+                        }
+                        return KeyEventResult.ignored;
+                      },
+                      child: TextField(
+                        controller: _title,
+                        focusNode: _titleFocus,
+                        autofocus: true,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) => setState(() {}),
+                        onSubmitted: (_) => _tagFocus.requestFocus(),
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          hintText: 'What happened?',
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                    ),
+                    const Gap(16),
+                    // Date — focusable via mouse/tap; excluded from Tab order
+                    // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
+                    editSectionLabel(
+                      context,
+                      'Date & Time',
+                      tooltip: entryDateTooltip,
+                    ),
+                    const Gap(8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Focus(
+                            focusNode: _dateFocus,
+                            onKeyEvent: (_, event) {
+                              if (event is KeyDownEvent) {
+                                if (event.logicalKey ==
+                                        LogicalKeyboardKey.enter ||
+                                    event.logicalKey ==
+                                        LogicalKeyboardKey.space) {
+                                  _pickDate();
+                                  return KeyEventResult.handled;
+                                }
                               }
-                            }
-                            return KeyEventResult.ignored;
-                          },
-                          child: InkWell(
-                            onTap: _pickDate,
-                            borderRadius: BorderRadius.circular(4),
-                            child: Builder(
-                              builder: (ctx) {
-                                final hasFocus = Focus.of(ctx).hasFocus;
-                                return InputDecorator(
-                                  decoration: InputDecoration(
-                                    border: const OutlineInputBorder(),
-                                    isDense: true,
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: Theme.of(
-                                          ctx,
-                                        ).colorScheme.primary,
-                                        width: 2,
+                              return KeyEventResult.ignored;
+                            },
+                            child: InkWell(
+                              onTap: _pickDate,
+                              borderRadius: BorderRadius.circular(4),
+                              child: Builder(
+                                builder: (ctx) {
+                                  final hasFocus = Focus.of(ctx).hasFocus;
+                                  return InputDecorator(
+                                    decoration: InputDecoration(
+                                      border: const OutlineInputBorder(),
+                                      isDense: true,
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                          color: Theme.of(
+                                            ctx,
+                                          ).colorScheme.primary,
+                                          width: 2,
+                                        ),
                                       ),
+                                      filled: hasFocus,
+                                      fillColor: Theme.of(ctx)
+                                          .colorScheme
+                                          .primaryContainer
+                                          .withValues(alpha: 0.15),
                                     ),
-                                    filled: hasFocus,
-                                    fillColor: Theme.of(ctx)
-                                        .colorScheme
-                                        .primaryContainer
-                                        .withValues(alpha: 0.15),
-                                  ),
-                                  child: Text(fmt.format(_eventDate)),
-                                );
-                              },
+                                    child: Text(fmt.format(_eventDate)),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // ── Tags ─────────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  editSectionLabel(context, 'Tags', tooltip: entryTagsTooltip),
-                  const Gap(8),
-                  TagField(
-                    tags: _tags,
-                    focusNode: _tagFocus,
-                    suggestions: provider.allTags,
-                    onChanged: (updated) => setState(() => _tags = updated),
-                  ),
-                ],
+              // ── Tags ─────────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    editSectionLabel(
+                      context,
+                      'Tags',
+                      tooltip: entryTagsTooltip,
+                    ),
+                    const Gap(8),
+                    TagField(
+                      tags: _tags,
+                      focusNode: _tagFocus,
+                      suggestions: provider.allTags,
+                      onChanged: (updated) => setState(() => _tags = updated),
+                    ),
+                  ],
+                ),
               ),
-            ),
 
-            // ── Notes (expanded) ────────────────────────────────────────
-            Expanded(
-              child: Padding(
+              // ── Notes ────────────────────────────────────────────────────
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -366,82 +375,79 @@ class _EntryEditState extends State<EntryEdit> {
                       ],
                     ),
                     const Gap(8),
-                    Expanded(
-                      child: _showPreview
-                          ? Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: cs.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: _note.text.trim().isEmpty
-                                  ? Text(
-                                      'Nothing to preview.',
-                                      style: TextStyle(
-                                        color: cs.onSurfaceVariant,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    )
-                                  : SelectionArea(
-                                      onSelectionChanged: (value) {
-                                        final text = value?.plainText ?? '';
-                                        if (text.isNotEmpty) {
-                                          writePrimarySelection(text);
-                                        }
-                                      },
-                                      child: SingleChildScrollView(
-                                        child: MarkdownBody(
-                                          data: _note.text,
-                                          shrinkWrap: true,
-                                          styleSheet:
-                                              MarkdownStyleSheet.fromTheme(
-                                                Theme.of(context),
-                                              ),
-                                        ),
+                    _showPreview
+                        ? Container(
+                            width: double.infinity,
+                            constraints: const BoxConstraints(minHeight: 200),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: cs.outline),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: _note.text.trim().isEmpty
+                                ? Text(
+                                    'Nothing to preview.',
+                                    style: TextStyle(
+                                      color: cs.onSurfaceVariant,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  )
+                                : SelectionArea(
+                                    onSelectionChanged: (value) {
+                                      final text = value?.plainText ?? '';
+                                      if (text.isNotEmpty) {
+                                        writePrimarySelection(text);
+                                      }
+                                    },
+                                    child: MarkdownBody(
+                                      data: _note.text,
+                                      shrinkWrap: true,
+                                      styleSheet: MarkdownStyleSheet.fromTheme(
+                                        Theme.of(context),
                                       ),
                                     ),
-                            )
-                          : EmacsTextField(
-                              controller: _note,
-                              focusNode: _notesFocus,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: 'Details, thoughts, markdown…',
-                                alignLabelWithHint: true,
-                              ),
+                                  ),
+                          )
+                        : EmacsTextField(
+                            controller: _note,
+                            focusNode: _notesFocus,
+                            outerScrollController: _bodyScrollCtrl,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: 'Details, thoughts, markdown…',
+                              alignLabelWithHint: true,
                             ),
+                          ),
+                  ],
+                ),
+              ),
+
+              // ── Location ────────────────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    editSectionLabel(
+                      context,
+                      'Location',
+                      tooltip: entryLocationTooltip,
+                    ),
+                    const Gap(8),
+                    TextField(
+                      controller: _location,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        hintText: 'Where did this happen?',
+                        prefixIcon: Icon(Icons.place_outlined, size: 18),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-            // ── Location ────────────────────────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  editSectionLabel(
-                    context,
-                    'Location',
-                    tooltip: entryLocationTooltip,
-                  ),
-                  const Gap(8),
-                  TextField(
-                    controller: _location,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      isDense: true,
-                      hintText: 'Where did this happen?',
-                      prefixIcon: Icon(Icons.place_outlined, size: 18),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

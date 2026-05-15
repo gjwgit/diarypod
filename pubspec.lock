@@ -149,10 +149,10 @@ packages:
     dependency: "direct main"
     description:
       name: emacs_text_field
-      sha256: "537feeeb1da6182ec7e44d575c4d336e998d5afd32982093565b0d1b9b988d87"
+      sha256: "3a1f93a1141b6d0f3434b346f4180649defb352d83e099495bd590e7cc2b6433"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.1"
+    version: "0.1.2"
   encrypter_plus:
     dependency: transitive
     description:
