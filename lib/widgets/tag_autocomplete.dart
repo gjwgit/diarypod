@@ -1,6 +1,6 @@
 /// Tag input widget with autocomplete for DiaryPod.
 ///
-// Time-stamp: <2026-05-12>
+// Time-stamp: <2026-05-15>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -67,17 +67,16 @@ class _TagFieldState extends State<TagField> {
   final _ctrl = TextEditingController();
   final _internalFocus = FocusNode();
   final _layerLink = LayerLink();
-  final _scrollController = ScrollController();
-  final _fieldKey = GlobalKey();
+  final _scrollCtrl = ScrollController();
 
   FocusNode get _focus => widget.focusNode ?? _internalFocus;
 
-  OverlayEntry? _overlay;
+  OverlayEntry? _entry;
   List<String> _options = [];
-  int _hi = -1; // highlighted index
+  int _hi = -1;
 
-  static const double _itemH = 40.0;
-  static const double _maxH = 200.0;
+  static const double _kItemH = 40.0;
+  static const double _kMaxH = 200.0;
 
   @override
   void initState() {
@@ -88,26 +87,18 @@ class _TagFieldState extends State<TagField> {
 
   @override
   void dispose() {
-    _removeOverlay();
+    _close();
     _ctrl.removeListener(_onTextChanged);
     _focus.removeListener(_onFocusChanged);
     _ctrl.dispose();
     _internalFocus.dispose();
-    _scrollController.dispose();
+    _scrollCtrl.dispose();
     super.dispose();
   }
 
-  void _onFocusChanged() {
-    if (_focus.hasFocus) {
-      _rebuildOptions();
-    } else {
-      _removeOverlay();
-    }
-  }
+  // ── Options list ─────────────────────────────────────────────────────────
 
-  void _onTextChanged() => _rebuildOptions();
-
-  List<String> _computeOptions() {
+  List<String> _compute() {
     final q = _ctrl.text.toLowerCase();
     return widget.suggestions
         .where(
@@ -118,159 +109,149 @@ class _TagFieldState extends State<TagField> {
         .toList();
   }
 
-  void _rebuildOptions() {
+  void _onTextChanged() => _refresh();
+  void _onFocusChanged() {
+    if (_focus.hasFocus) {
+      _refresh();
+    } else {
+      // Delay closing so a mouse tap on a dropdown item can fire before
+      // the overlay is removed.
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && !_focus.hasFocus) _close();
+      });
+    }
+  }
+
+  void _refresh() {
     if (!mounted) return;
-    final opts = _computeOptions();
+    final opts = _compute();
     setState(() {
       _options = opts;
       _hi = -1;
     });
     if (opts.isEmpty) {
-      _removeOverlay();
+      _close();
+    } else if (_entry == null) {
+      _entry = OverlayEntry(builder: (_) => _dropdown());
+      Overlay.of(context).insert(_entry!);
     } else {
-      if (_overlay == null) {
-        _overlay = OverlayEntry(builder: (_) => _buildDropdown());
-        Overlay.of(context).insert(_overlay!);
-      } else {
-        _overlay!.markNeedsBuild();
-      }
+      _entry!.markNeedsBuild();
     }
   }
 
-  void _removeOverlay() {
-    _overlay?.remove();
-    _overlay = null;
+  void _close() {
+    _entry?.remove();
+    _entry = null;
   }
 
-  void _scrollToHighlighted() {
-    if (!_scrollController.hasClients || _hi < 0) return;
-    final target = _hi * _itemH;
-    final vp = _scrollController.position.viewportDimension;
-    final off = _scrollController.offset;
-    if (target < off) {
-      _scrollController.jumpTo(target);
-    } else if (target + _itemH > off + vp) {
-      _scrollController.jumpTo(target + _itemH - vp);
-    }
-  }
+  // ── Keyboard ─────────────────────────────────────────────────────────────
 
-  void _selectTag(String tag) {
-    final t = tag.trim().toLowerCase();
-    if (t.isEmpty) return;
-    _removeOverlay();
-    if (!widget.tags.contains(t)) {
-      widget.onChanged(List<String>.from(widget.tags)..add(t));
-    }
-    _ctrl.clear();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      _focus.requestFocus();
-      _rebuildOptions();
-    });
-  }
+  KeyEventResult _onKey(FocusNode _, KeyEvent ev) {
+    if (ev is! KeyDownEvent) return KeyEventResult.ignored;
+    final k = ev.logicalKey;
 
-  void _removeTag(String tag) =>
-      widget.onChanged(widget.tags.where((t) => t != tag).toList());
-
-  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent) return KeyEventResult.ignored;
-    final key = event.logicalKey;
-
-    if (key == LogicalKeyboardKey.arrowDown) {
+    if (k == LogicalKeyboardKey.arrowDown) {
       if (_options.isEmpty) return KeyEventResult.ignored;
       setState(() => _hi = (_hi + 1).clamp(0, _options.length - 1));
-      _overlay?.markNeedsBuild();
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _scrollToHighlighted(),
-      );
+      _entry?.markNeedsBuild();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollTo(_hi));
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.arrowUp) {
+    if (k == LogicalKeyboardKey.arrowUp) {
       if (_options.isEmpty) return KeyEventResult.ignored;
       setState(() => _hi = (_hi - 1).clamp(0, _options.length - 1));
-      _overlay?.markNeedsBuild();
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _scrollToHighlighted(),
-      );
+      _entry?.markNeedsBuild();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollTo(_hi));
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.enter ||
-        key == LogicalKeyboardKey.numpadEnter) {
+    if (k == LogicalKeyboardKey.enter || k == LogicalKeyboardKey.numpadEnter) {
       if (_hi >= 0 && _hi < _options.length) {
-        _selectTag(_options[_hi]);
+        _pick(_options[_hi]);
       } else if (_ctrl.text.trim().isNotEmpty) {
-        _selectTag(_ctrl.text);
+        _pick(_ctrl.text);
       }
       return KeyEventResult.handled;
     }
-    if (key == LogicalKeyboardKey.escape) {
-      _removeOverlay();
+    if (k == LogicalKeyboardKey.escape) {
+      _close();
       return KeyEventResult.handled;
     }
     return KeyEventResult.ignored;
   }
 
-  Widget _buildDropdown() {
-    final cs = Theme.of(context).colorScheme;
-
-    // Measure the field's position to decide whether to open up or down.
-    final renderBox =
-        _fieldKey.currentContext?.findRenderObject() as RenderBox?;
-    final screenSize = MediaQuery.of(context).size;
-    const fieldHeight = 40.0;
-    double spaceBelow = screenSize.height / 2; // fallback
-    double spaceAbove = screenSize.height / 2;
-    if (renderBox != null) {
-      final pos = renderBox.localToGlobal(Offset.zero);
-      spaceBelow = screenSize.height - pos.dy - fieldHeight - 8;
-      spaceAbove = pos.dy - 8;
+  void _scrollTo(int i) {
+    if (!_scrollCtrl.hasClients || i < 0) return;
+    final target = i * _kItemH;
+    final vp = _scrollCtrl.position.viewportDimension;
+    final off = _scrollCtrl.offset;
+    if (target < off) {
+      _scrollCtrl.jumpTo(target);
+    } else if (target + _kItemH > off + vp) {
+      _scrollCtrl.jumpTo(target + _kItemH - vp);
     }
+  }
 
-    final openUpward = spaceBelow < 120 && spaceAbove > spaceBelow;
-    final availableSpace = openUpward ? spaceAbove : spaceBelow;
-    final dropdownHeight = (_options.length * _itemH).clamp(
-      0.0,
-      availableSpace.clamp(0.0, _maxH),
-    );
+  // ── Tag management ───────────────────────────────────────────────────────
 
-    final offset = openUpward
-        ? Offset(0, -dropdownHeight - 4)
-        : const Offset(0, 40);
+  void _pick(String tag) {
+    final t = tag.trim().toLowerCase();
+    if (t.isEmpty) return;
+    _close();
+    if (!widget.tags.contains(t)) {
+      widget.onChanged(List<String>.from(widget.tags)..add(t));
+    }
+    _ctrl.clear();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _focus.requestFocus();
+        _refresh();
+      }
+    });
+  }
+
+  void _remove(String tag) =>
+      widget.onChanged(widget.tags.where((t) => t != tag).toList());
+
+  // ── Dropdown overlay ─────────────────────────────────────────────────────
+
+  Widget _dropdown() {
+    final cs = Theme.of(context).colorScheme;
+    final opts = List<String>.from(_options);
+    final hi = _hi;
+    final count = opts.length;
+    final dropH = (count * _kItemH).clamp(0.0, _kMaxH);
 
     return Positioned(
       width: 300,
       child: CompositedTransformFollower(
         link: _layerLink,
         showWhenUnlinked: false,
-        offset: offset,
+        offset: const Offset(0, 40),
         child: Material(
           elevation: 4,
           borderRadius: BorderRadius.circular(8),
           child: SizedBox(
-            height: dropdownHeight,
+            height: dropH,
             child: ListView.builder(
-              controller: _scrollController,
+              controller: _scrollCtrl,
               padding: EdgeInsets.zero,
-              itemCount: _options.length,
-              itemExtent: _itemH,
+              itemCount: count,
+              itemExtent: _kItemH,
               itemBuilder: (_, i) {
-                final highlighted = i == _hi;
+                final sel = i == hi;
                 return InkWell(
-                  onTap: () => _selectTag(_options[i]),
+                  onTap: () => _pick(opts[i]),
                   child: Container(
-                    height: _itemH,
                     alignment: Alignment.centerLeft,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    color: highlighted
+                    color: sel
                         ? cs.primaryContainer.withValues(alpha: 0.5)
                         : null,
                     child: Text(
-                      _options[i],
+                      opts[i],
                       style: TextStyle(
                         color: cs.onSurface,
-                        fontWeight: highlighted
-                            ? FontWeight.w600
-                            : FontWeight.normal,
+                        fontWeight: sel ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -283,35 +264,39 @@ class _TagFieldState extends State<TagField> {
     );
   }
 
+  // ── Build ─────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.tags.isNotEmpty)
+        if (widget.tags.isNotEmpty) ...[
           Wrap(
             spacing: 6,
             runSpacing: 4,
-            children: widget.tags.map((t) {
-              return InputChip(
-                label: Text(t),
-                onDeleted: () => _removeTag(t),
-                deleteIconColor: cs.onSurfaceVariant,
-              );
-            }).toList(),
+            children: widget.tags
+                .map(
+                  (t) => InputChip(
+                    label: Text(t),
+                    onDeleted: () => _remove(t),
+                    deleteIconColor: cs.onSurfaceVariant,
+                  ),
+                )
+                .toList(),
           ),
-        if (widget.tags.isNotEmpty) const Gap(6),
+          const Gap(6),
+        ],
         CompositedTransformTarget(
-          key: _fieldKey,
           link: _layerLink,
           child: Focus(
             onKeyEvent: _onKey,
             child: MarkdownTooltip(
               message:
-                  '**Tags**\n\nType a tag and press Enter or tap + to add. '
-                  'Arrow keys navigate suggestions. '
-                  'Tap × on a chip to remove it.',
+                  '**Tags**\n\nType a tag and press Enter or tap + '
+                  'to add it. Arrow keys navigate suggestions. '
+                  'Tap × on a chip to remove a tag.',
               child: TextField(
                 controller: _ctrl,
                 focusNode: _focus,
@@ -327,7 +312,7 @@ class _TagFieldState extends State<TagField> {
                     message: '**Add tag**\n\nAdd the typed text as a tag.',
                     child: IconButton(
                       icon: const Icon(Icons.add, size: 18),
-                      onPressed: () => _selectTag(_ctrl.text),
+                      onPressed: () => _pick(_ctrl.text),
                     ),
                   ),
                 ),

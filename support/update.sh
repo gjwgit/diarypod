@@ -1,6 +1,9 @@
 #!/bin/bash
 
-# 20260512 gjw Why not symlink when the files are identical?Synlinks
+# 20260515 gjw Use hard links. Should be github friendly. A littler
+# trickier to see that they are a hard link.
+#
+# 20260512 gjw Why not symlink when the files are identical? Synlinks
 # are not github friendly though, being a text file containg the path
 # to the linked file. But these IDENTICAL files are stored in another
 # repo so let's go with that one copy principle.

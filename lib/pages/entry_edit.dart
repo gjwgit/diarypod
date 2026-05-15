@@ -187,7 +187,7 @@ class _EntryEditState extends State<EntryEdit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title — autofocus, Tab skips Date and moves to Edit/Preview toggle.
+                  // Title — autofocus, Tab skips Date and moves to Tags.
                   editSectionLabel(
                     context,
                     'Title',
@@ -199,7 +199,7 @@ class _EntryEditState extends State<EntryEdit> {
                       if (event is! KeyDownEvent) return KeyEventResult.ignored;
                       if (event.logicalKey == LogicalKeyboardKey.tab &&
                           !HardwareKeyboard.instance.isShiftPressed) {
-                        _toggleFocus.requestFocus();
+                        _tagFocus.requestFocus();
                         return KeyEventResult.handled;
                       }
                       return KeyEventResult.ignored;
@@ -210,7 +210,7 @@ class _EntryEditState extends State<EntryEdit> {
                       autofocus: true,
                       textInputAction: TextInputAction.next,
                       onChanged: (_) => setState(() {}),
-                      onSubmitted: (_) => _toggleFocus.requestFocus(),
+                      onSubmitted: (_) => _tagFocus.requestFocus(),
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                         isDense: true,
@@ -277,6 +277,24 @@ class _EntryEditState extends State<EntryEdit> {
                         ),
                       ),
                     ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Tags ─────────────────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  editSectionLabel(context, 'Tags', tooltip: entryTagsTooltip),
+                  const Gap(8),
+                  TagField(
+                    tags: _tags,
+                    focusNode: _tagFocus,
+                    suggestions: provider.allTags,
+                    onChanged: (updated) => setState(() => _tags = updated),
                   ),
                 ],
               ),
@@ -399,21 +417,12 @@ class _EntryEditState extends State<EntryEdit> {
               ),
             ),
 
-            // ── Tags + Location ─────────────────────────────────────────
+            // ── Location ────────────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  editSectionLabel(context, 'Tags', tooltip: entryTagsTooltip),
-                  const Gap(8),
-                  TagField(
-                    tags: _tags,
-                    focusNode: _tagFocus,
-                    suggestions: provider.allTags,
-                    onChanged: (updated) => setState(() => _tags = updated),
-                  ),
-                  const Gap(12),
                   editSectionLabel(
                     context,
                     'Location',
