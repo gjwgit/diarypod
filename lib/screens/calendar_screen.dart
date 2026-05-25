@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/entry_edit.dart';
+import 'package:diarypod/screens/diary_io.dart';
 import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/entry_tile.dart';
 
@@ -276,6 +277,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 onDelete: () => _deleteEntry(context, provider, dayEntries[i]),
                 onDuplicate: () =>
                     _duplicateEntry(context, provider, dayEntries[i]),
+                onPdf: () => DiaryIO.entryPdf(context, dayEntries[i]),
               ),
             ),
           ),

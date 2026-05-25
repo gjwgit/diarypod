@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Support PDF for individual entries [0.1.16 20260526 gjw]
 + Darker titles [0.1.15 20260525 gjw]
 + Scroll NOTES as we type [0.1.14 20260515 gjw]
 + Fix TAG navigation and move TAG higher [0.1.13 20260515 gjw]

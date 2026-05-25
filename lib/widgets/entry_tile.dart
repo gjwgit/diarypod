@@ -22,6 +22,7 @@ class EntryTile extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onDelete;
   final VoidCallback onDuplicate;
+  final VoidCallback onPdf;
 
   const EntryTile({
     super.key,
@@ -29,6 +30,7 @@ class EntryTile extends StatelessWidget {
     required this.onTap,
     required this.onDelete,
     required this.onDuplicate,
+    required this.onPdf,
   });
 
   @override
@@ -244,6 +246,17 @@ class EntryTile extends StatelessWidget {
                 child: IconButton(
                   icon: const Icon(Icons.copy_outlined, size: 18),
                   onPressed: onDuplicate,
+                ),
+              ),
+
+              // ── PDF ──────────────────────────────────────────────────
+              MarkdownTooltip(
+                message:
+                    '**PDF**\n\nPreview this entry as a PDF and optionally '
+                    'save it to a file.',
+                child: IconButton(
+                  icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                  onPressed: onPdf,
                 ),
               ),
 

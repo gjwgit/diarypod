@@ -18,6 +18,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/entry_edit.dart';
+import 'package:diarypod/screens/diary_io.dart';
 import 'package:diarypod/screens/list_screen_filter_sheet.dart';
 import 'package:diarypod/screens/list_screen_widgets.dart';
 import 'package:diarypod/services/app_provider.dart';
@@ -265,6 +266,7 @@ class _ListScreenState extends State<ListScreen> {
                 onDelete: () => _deleteEntry(context, provider, entries[i]),
                 onDuplicate: () =>
                     _duplicateEntry(context, provider, entries[i]),
+                onPdf: () => DiaryIO.entryPdf(context, entries[i]),
               ),
             ),
           ),

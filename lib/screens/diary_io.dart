@@ -16,16 +16,37 @@ import 'package:flutter/material.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
+import 'package:diarypod/screens/diary_pdf_markdown.dart';
 import 'package:diarypod/services/app_provider.dart';
 
 class DiaryIO {
   DiaryIO._();
+
+  /// Create a [pw.Document] with Noto Sans as the default font.
+  /// Noto Sans supports the full Unicode range including bullet characters
+  /// and avoids the "Helvetica has no Unicode support" warnings.
+  static Future<pw.Document> _makeDoc() async {
+    final base = await PdfGoogleFonts.notoSansRegular();
+    final bold = await PdfGoogleFonts.notoSansBold();
+    final italic = await PdfGoogleFonts.notoSansItalic();
+    final boldItalic = await PdfGoogleFonts.notoSansBoldItalic();
+    return pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: base,
+        bold: bold,
+        italic: italic,
+        boldItalic: boldItalic,
+      ),
+    );
+  }
 
   static String _ts() {
     final n = DateTime.now();
@@ -186,13 +207,140 @@ class DiaryIO {
     return savePath;
   }
 
+  // ── Single-entry PDF ────────────────────────────────────────────────────────
+
+  /// Generate a PDF for a single [entry], open it in the system PDF viewer,
+  /// and (on non-web platforms) offer a separate Save dialog after the viewer
+  /// closes if the user chooses to keep a copy.
+  static Future<void> entryPdf(BuildContext context, DiaryEntry entry) async {
+    final fmt = DateFormat('EEE d MMM yyyy  HH:mm');
+    final doc = await _makeDoc();
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        build: (_) => [
+          pw.Text(
+            entry.title,
+            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            fmt.format(entry.eventDate),
+            style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
+          ),
+          if (entry.location != null) ...[
+            pw.SizedBox(height: 2),
+            pw.Text(
+              'Location: ${entry.location}',
+              style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
+            ),
+          ],
+          if (entry.tags.isNotEmpty) ...[
+            pw.SizedBox(height: 2),
+            pw.Text(
+              'Tags: ${entry.tags.join(', ')}',
+              style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey600),
+            ),
+          ],
+          if (entry.hasNote) ...[
+            pw.SizedBox(height: 10),
+            pw.Divider(color: PdfColors.grey300),
+            pw.SizedBox(height: 8),
+            // Render note as formatted markdown (headings, bold, italic,
+            // lists, code blocks, blockquotes, etc.)
+            ...markdownToPdf(entry.note),
+          ],
+        ],
+      ),
+    );
+
+    final pdfBytes = await doc.save();
+    final safeName = entry.title
+        .replaceAll(RegExp(r'[^a-zA-Z0-9_\- ]'), '')
+        .trim()
+        .replaceAll(' ', '_')
+        .toLowerCase();
+    final pdfName = 'diarypod_${safeName}_${_ts()}.pdf';
+
+    if (kIsWeb) {
+      // Web: use the print/preview dialog — no temp file available.
+      await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: pdfName);
+      return;
+    }
+
+    // Write to a temp file and open in the system PDF viewer.
+    final tmpDir = await getTemporaryDirectory();
+    final tmpFile = File('${tmpDir.path}/$pdfName');
+    await tmpFile.writeAsBytes(pdfBytes);
+    final result = await OpenFilex.open(tmpFile.path);
+
+    if (!context.mounted) return;
+    if (result.type != ResultType.done) {
+      // Viewer not available — fall back to save dialog.
+      _showSaveError(context, result.message, pdfBytes, pdfName);
+    }
+  }
+
+  /// Show an error with option to save directly when the viewer failed.
+  static Future<void> _showSaveError(
+    BuildContext context,
+    String message,
+    List<int> pdfBytes,
+    String pdfName,
+  ) {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Could not open viewer'),
+        content: Text(
+          '$message\n\nWould you like to save the PDF to a file instead?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await _saveFile(context, pdfBytes, pdfName);
+            },
+            child: const Text('Save file'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Save [pdfBytes] to a user-chosen path via [FilePicker].
+  static Future<void> _saveFile(
+    BuildContext context,
+    List<int> pdfBytes,
+    String pdfName,
+  ) async {
+    final savePath = await FilePicker.saveFile(
+      dialogTitle: 'Save PDF',
+      fileName: pdfName,
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+    if (savePath == null) return;
+    await File(savePath).writeAsBytes(pdfBytes);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Saved to $savePath')));
+  }
+
   // ── PDF export ─────────────────────────────────────────────────────────────
 
   static Future<String?> exportPdf(AppProvider provider) async {
     final fmt = DateFormat('EEE d MMM yyyy  HH:mm');
     final now = DateTime.now();
     final entries = provider.entries;
-    final doc = pw.Document();
+    final doc = await _makeDoc();
 
     doc.addPage(
       pw.MultiPage(
@@ -243,7 +391,7 @@ class DiaryIO {
               ),
             if (e.hasNote) ...[
               pw.SizedBox(height: 4),
-              pw.Text(e.note, style: const pw.TextStyle(fontSize: 10)),
+              ...markdownToPdf(e.note),
             ],
             pw.SizedBox(height: 10),
             pw.Divider(color: PdfColors.grey300),
