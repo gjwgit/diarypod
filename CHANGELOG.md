@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ Darker titles [0.1.15 20260525 gjw]
 + Scroll NOTES as we type [0.1.14 20260515 gjw]
 + Fix TAG navigation and move TAG higher [0.1.13 20260515 gjw]
 + Updated mouse selection [0.1.12 20260514 gjw]

@@ -136,12 +136,10 @@ class EntryTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             entry.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: isPast
-                                  ? cs.onSurface.withValues(alpha: 0.45)
-                                  : null,
+                              color: Colors.black,
                             ),
                           ),
                         ),
