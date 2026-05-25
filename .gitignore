@@ -2,13 +2,6 @@
 # Local ignores
 ########################################################################
 
-# 20260513 gjw A collection of symlinks to files in
-# `github:gjwgit/scripts`
-
-support/update.sh
-
-# Other files to ignore.
-
 !lib
 
 *~
