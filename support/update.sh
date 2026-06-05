@@ -31,6 +31,7 @@ FILES=(
     ${SCRIPTS}support/flutter.mk support/flutter.mk
     ${SCRIPTS}support/update.sh support/update.sh
     ${SCRIPTS}flutter/.gitignore .gitignore
+    ${SCRIPTS}flutter/.lycheeignore .lycheeignore
     ${SCRIPTS}Makefile Makefile
 )
 
@@ -149,9 +150,9 @@ for ((i=0; i < length; i+=2)); do
 	if [[ "$f1" == *install* ]] && [ "$IS_APP" = false ]; then
 	    echo "SKIP      $f1 $f2"
 	else
-	    if [ ! -f "$f1" ] && [ -f "$f2" ]; then
-		echo "MISSING   $f1 <- $f2"
-		cp "$f2" "$f1"
+	    if [ ! -f "$f2" ] && [ -f "$f1" ]; then
+		echo "MISSING   $f1 -> $f2"
+		cp "$f1" "$f2"
 	    else
 		echo "MISSING $f2"
 	    fi
