@@ -1,6 +1,6 @@
 /// DiaryPod — private encrypted diary on your Solid Pod.
 ///
-// Time-stamp: <Sunday 2026-05-31 06:27:53 +1000 Graham Williams>
+// Time-stamp: <Friday 2026-06-05 13:57:04 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -132,9 +132,9 @@ class _AppState extends State<_App> {
         clientId:
             'https://solidcommunity.au/apps/diarypod/client-profile.jsonld',
         redirectUris: [
-          'http://localhost:4400/redirect',
-          'com.togaware.todopod://redirect',
           'https://solidcommunity.au/apps/diarypod/redirect.html',
+          'com.togaware.diarypod://redirect',
+          'http://localhost:4400/redirect',
         ],
         child: const AppScaffold(),
       ),
