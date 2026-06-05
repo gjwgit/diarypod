@@ -22,6 +22,7 @@ import 'package:uuid/uuid.dart';
 import 'package:diarypod/constants/tooltips.dart';
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/services/app_provider.dart';
+import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
 class EntryEdit extends StatefulWidget {
@@ -205,6 +206,51 @@ class _EntryEditState extends State<EntryEdit> {
     }
   }
 
+  /// Insert [text] into the note field at the current cursor position,
+  /// replacing any active selection, then place the cursor after the
+  /// inserted text. Falls back to appending if there's no valid selection.
+  void _insertAtCursor(String text) {
+    // If currently in preview, switch to edit mode so the insertion is
+    // visible and the cursor lands in the editable field.
+    if (_showPreview) {
+      setState(() => _showPreview = false);
+    }
+    final value = _note.value;
+    final sel = value.selection;
+    final base = value.text;
+    if (sel.isValid) {
+      final start = sel.start;
+      final end = sel.end;
+      final newText = base.replaceRange(start, end, text);
+      _note.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: start + text.length),
+      );
+    } else {
+      final newText = base.isEmpty ? text : '$base\n$text';
+      _note.value = TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newText.length),
+      );
+    }
+    _notesFocus.requestFocus();
+    setState(() {});
+  }
+
+  /// Open the reference panel to browse/copy other entries while editing.
+  void _openReference() {
+    final provider = context.read<AppProvider>();
+    // Offer all entries except the one currently being edited.
+    final others = provider.entries
+        .where((e) => e.id != widget.entry?.id)
+        .toList();
+    showReferencePanel(
+      context: context,
+      entries: others,
+      onInsert: _insertAtCursor,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -246,6 +292,11 @@ class _EntryEditState extends State<EntryEdit> {
             automaticallyImplyLeading: false,
             title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.menu_book_outlined),
+                tooltip: 'Reference another note',
+                onPressed: _openReference,
+              ),
               Padding(
                 padding: const EdgeInsets.only(right: 4),
                 child: TextButton(

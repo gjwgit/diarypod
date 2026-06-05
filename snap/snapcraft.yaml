@@ -1,5 +1,5 @@
 name: diarypod
-version: 0.1.17
+version: 0.1.18
 summary: Private encrypted diary on your Solid Pod.
 description: |
   Keep date/time indexed notes from meetings etc securely and
