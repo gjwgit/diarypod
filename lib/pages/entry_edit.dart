@@ -134,6 +134,77 @@ class _EntryEditState extends State<EntryEdit> {
     Navigator.of(context).pop(entry);
   }
 
+  /// True when the user has modified any field from the original entry
+  /// (or, for a new entry, entered anything at all).
+  bool get _hasChanges {
+    final e = widget.entry;
+    if (e == null) {
+      // New entry: dirty if any field has content.
+      return _title.text.trim().isNotEmpty ||
+          _note.text.trim().isNotEmpty ||
+          _location.text.trim().isNotEmpty ||
+          _tags.isNotEmpty;
+    }
+    // Existing entry: compare each editable field to the original.
+    final tagsChanged =
+        _tags.length != e.tags.length ||
+        !List.generate(
+          _tags.length,
+          (i) => _tags[i] == e.tags[i],
+        ).every((x) => x);
+    return _title.text.trim() != e.title ||
+        _note.text != e.note ||
+        _location.text.trim() != (e.location ?? '') ||
+        _eventDate != e.eventDate ||
+        tagsChanged;
+  }
+
+  /// Pop the editor, but if there are unsaved changes first ask the user
+  /// whether to save, discard, or keep editing. Returns nothing — it
+  /// handles the navigation itself.
+  Future<void> _confirmDiscard() async {
+    if (!_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final action = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Unsaved changes'),
+        content: const Text(
+          'You have unsaved changes. Would you like to save them?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('keep'),
+            child: const Text('Keep editing'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop('discard'),
+            child: const Text('Discard'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop('save'),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    switch (action) {
+      case 'save':
+        // Only save if the title is valid; otherwise stay in the editor.
+        if (_title.text.trim().isNotEmpty) {
+          _save();
+        }
+      case 'discard':
+        Navigator.of(context).pop();
+      default:
+        // 'keep' or dismissed — stay in the editor.
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -161,292 +232,306 @@ class _EntryEditState extends State<EntryEdit> {
         }
         return KeyEventResult.ignored;
       },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilledButton(
-                onPressed: canSave ? _save : null,
-                child: Text(_isNew ? 'Add' : 'Save'),
-              ),
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          controller: _bodyScrollCtrl,
-          child: Column(
-            children: [
-              // ── Title + Date ────────────────────────────────────────────
+      child: PopScope(
+        // Intercept the back button / X so we can warn about unsaved
+        // changes. canPop is false when there are changes; the
+        // onPopInvoked handler then runs our confirmation flow.
+        canPop: !_hasChanges,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          _confirmDiscard();
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            title: Text(_isNew ? 'New Entry' : 'Edit Entry'),
+            actions: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title — autofocus, Tab skips Date and moves to Tags.
-                    editSectionLabel(
-                      context,
-                      'Title',
-                      tooltip: entryTitleTooltip,
-                    ),
-                    const Gap(8),
-                    Focus(
-                      onKeyEvent: (_, event) {
-                        if (event is! KeyDownEvent) {
-                          return KeyEventResult.ignored;
-                        }
-                        if (event.logicalKey == LogicalKeyboardKey.tab &&
-                            !HardwareKeyboard.instance.isShiftPressed) {
-                          _tagFocus.requestFocus();
-                          return KeyEventResult.handled;
-                        }
-                        return KeyEventResult.ignored;
-                      },
-                      child: TextField(
-                        controller: _title,
-                        focusNode: _titleFocus,
-                        autofocus: true,
-                        textInputAction: TextInputAction.next,
-                        onChanged: (_) => setState(() {}),
-                        onSubmitted: (_) => _tagFocus.requestFocus(),
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          isDense: true,
-                          hintText: 'What happened?',
-                        ),
-                        textCapitalization: TextCapitalization.sentences,
-                      ),
-                    ),
-                    const Gap(16),
-                    // Date — focusable via mouse/tap; excluded from Tab order
-                    // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
-                    editSectionLabel(
-                      context,
-                      'Date & Time',
-                      tooltip: entryDateTooltip,
-                    ),
-                    const Gap(8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Focus(
-                            focusNode: _dateFocus,
-                            onKeyEvent: (_, event) {
-                              if (event is KeyDownEvent) {
-                                if (event.logicalKey ==
-                                        LogicalKeyboardKey.enter ||
-                                    event.logicalKey ==
-                                        LogicalKeyboardKey.space) {
-                                  _pickDate();
-                                  return KeyEventResult.handled;
-                                }
-                              }
-                              return KeyEventResult.ignored;
-                            },
-                            child: InkWell(
-                              onTap: _pickDate,
-                              borderRadius: BorderRadius.circular(4),
-                              child: Builder(
-                                builder: (ctx) {
-                                  final hasFocus = Focus.of(ctx).hasFocus;
-                                  return InputDecorator(
-                                    decoration: InputDecoration(
-                                      border: const OutlineInputBorder(),
-                                      isDense: true,
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(
-                                            ctx,
-                                          ).colorScheme.primary,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      filled: hasFocus,
-                                      fillColor: Theme.of(ctx)
-                                          .colorScheme
-                                          .primaryContainer
-                                          .withValues(alpha: 0.15),
-                                    ),
-                                    child: Text(fmt.format(_eventDate)),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                padding: const EdgeInsets.only(right: 4),
+                child: TextButton(
+                  onPressed: _confirmDiscard,
+                  child: const Text('Cancel'),
                 ),
               ),
-
-              // ── Tags ─────────────────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    editSectionLabel(
-                      context,
-                      'Tags',
-                      tooltip: entryTagsTooltip,
-                    ),
-                    const Gap(8),
-                    TagField(
-                      tags: _tags,
-                      focusNode: _tagFocus,
-                      suggestions: provider.allTags,
-                      onChanged: (updated) => setState(() => _tags = updated),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ── Notes ────────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        editSectionLabel(
-                          context,
-                          'Notes',
-                          tooltip: entryNotesTooltip,
-                        ),
-                        const Spacer(),
-                        Focus(
-                          onKeyEvent: (_, event) {
-                            if (event is! KeyDownEvent) {
-                              return KeyEventResult.ignored;
-                            }
-                            if (event.logicalKey == LogicalKeyboardKey.enter ||
-                                event.logicalKey == LogicalKeyboardKey.space) {
-                              // "Edit" shown (preview mode) → switch to edit
-                              // and move focus to Notes.
-                              // "Preview" shown (edit mode) → toggle to preview
-                              // and stay on the button.
-                              if (_showPreview) {
-                                setState(() => _showPreview = false);
-                                _notesFocus.requestFocus();
-                              } else {
-                                setState(() => _showPreview = true);
-                                _toggleFocus.requestFocus();
-                              }
-                              return KeyEventResult.handled;
-                            }
-                            if (event.logicalKey == LogicalKeyboardKey.tab &&
-                                !HardwareKeyboard.instance.isShiftPressed) {
-                              if (!_showPreview) {
-                                _notesFocus.requestFocus();
-                              } else {
-                                _tagFocus.requestFocus();
-                              }
-                              return KeyEventResult.handled;
-                            }
-                            return KeyEventResult.ignored;
-                          },
-                          child: TextButton.icon(
-                            focusNode: _toggleFocus,
-                            onPressed: () =>
-                                setState(() => _showPreview = !_showPreview),
-                            icon: Icon(
-                              _showPreview
-                                  ? Icons.edit_outlined
-                                  : Icons.preview_outlined,
-                              size: 16,
-                            ),
-                            label: Text(_showPreview ? 'Edit' : 'Preview'),
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Gap(8),
-                    _showPreview
-                        ? Container(
-                            width: double.infinity,
-                            constraints: const BoxConstraints(minHeight: 200),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: cs.outline),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: _note.text.trim().isEmpty
-                                ? Text(
-                                    'Nothing to preview.',
-                                    style: TextStyle(
-                                      color: cs.onSurfaceVariant,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  )
-                                : SelectionArea(
-                                    onSelectionChanged: (value) {
-                                      final text = value?.plainText ?? '';
-                                      if (text.isNotEmpty) {
-                                        writePrimarySelection(text);
-                                      }
-                                    },
-                                    child: MarkdownBody(
-                                      data: _note.text,
-                                      shrinkWrap: true,
-                                      styleSheet: MarkdownStyleSheet.fromTheme(
-                                        Theme.of(context),
-                                      ),
-                                    ),
-                                  ),
-                          )
-                        : EmacsTextField(
-                            controller: _note,
-                            focusNode: _notesFocus,
-                            outerScrollController: _bodyScrollCtrl,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Details, thoughts, markdown…',
-                              alignLabelWithHint: true,
-                            ),
-                          ),
-                  ],
-                ),
-              ),
-
-              // ── Location ────────────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    editSectionLabel(
-                      context,
-                      'Location',
-                      tooltip: entryLocationTooltip,
-                    ),
-                    const Gap(8),
-                    TextField(
-                      controller: _location,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        hintText: 'Where did this happen?',
-                        prefixIcon: Icon(Icons.place_outlined, size: 18),
-                      ),
-                    ),
-                  ],
+                padding: const EdgeInsets.only(right: 8),
+                child: FilledButton(
+                  onPressed: canSave ? _save : null,
+                  child: Text(_isNew ? 'Add' : 'Save'),
                 ),
               ),
             ],
+          ),
+          body: SingleChildScrollView(
+            controller: _bodyScrollCtrl,
+            child: Column(
+              children: [
+                // ── Title + Date ────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title — autofocus, Tab skips Date and moves to Tags.
+                      editSectionLabel(
+                        context,
+                        'Title',
+                        tooltip: entryTitleTooltip,
+                      ),
+                      const Gap(8),
+                      Focus(
+                        onKeyEvent: (_, event) {
+                          if (event is! KeyDownEvent) {
+                            return KeyEventResult.ignored;
+                          }
+                          if (event.logicalKey == LogicalKeyboardKey.tab &&
+                              !HardwareKeyboard.instance.isShiftPressed) {
+                            _tagFocus.requestFocus();
+                            return KeyEventResult.handled;
+                          }
+                          return KeyEventResult.ignored;
+                        },
+                        child: TextField(
+                          controller: _title,
+                          focusNode: _titleFocus,
+                          autofocus: true,
+                          textInputAction: TextInputAction.next,
+                          onChanged: (_) => setState(() {}),
+                          onSubmitted: (_) => _tagFocus.requestFocus(),
+                          decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            hintText: 'What happened?',
+                          ),
+                          textCapitalization: TextCapitalization.sentences,
+                        ),
+                      ),
+                      const Gap(16),
+                      // Date — focusable via mouse/tap; excluded from Tab order
+                      // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
+                      editSectionLabel(
+                        context,
+                        'Date & Time',
+                        tooltip: entryDateTooltip,
+                      ),
+                      const Gap(8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Focus(
+                              focusNode: _dateFocus,
+                              onKeyEvent: (_, event) {
+                                if (event is KeyDownEvent) {
+                                  if (event.logicalKey ==
+                                          LogicalKeyboardKey.enter ||
+                                      event.logicalKey ==
+                                          LogicalKeyboardKey.space) {
+                                    _pickDate();
+                                    return KeyEventResult.handled;
+                                  }
+                                }
+                                return KeyEventResult.ignored;
+                              },
+                              child: InkWell(
+                                onTap: _pickDate,
+                                borderRadius: BorderRadius.circular(4),
+                                child: Builder(
+                                  builder: (ctx) {
+                                    final hasFocus = Focus.of(ctx).hasFocus;
+                                    return InputDecorator(
+                                      decoration: InputDecoration(
+                                        border: const OutlineInputBorder(),
+                                        isDense: true,
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(
+                                            color: Theme.of(
+                                              ctx,
+                                            ).colorScheme.primary,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        filled: hasFocus,
+                                        fillColor: Theme.of(ctx)
+                                            .colorScheme
+                                            .primaryContainer
+                                            .withValues(alpha: 0.15),
+                                      ),
+                                      child: Text(fmt.format(_eventDate)),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Tags ─────────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      editSectionLabel(
+                        context,
+                        'Tags',
+                        tooltip: entryTagsTooltip,
+                      ),
+                      const Gap(8),
+                      TagField(
+                        tags: _tags,
+                        focusNode: _tagFocus,
+                        suggestions: provider.allTags,
+                        onChanged: (updated) => setState(() => _tags = updated),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Notes ────────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          editSectionLabel(
+                            context,
+                            'Notes',
+                            tooltip: entryNotesTooltip,
+                          ),
+                          const Spacer(),
+                          Focus(
+                            onKeyEvent: (_, event) {
+                              if (event is! KeyDownEvent) {
+                                return KeyEventResult.ignored;
+                              }
+                              if (event.logicalKey ==
+                                      LogicalKeyboardKey.enter ||
+                                  event.logicalKey ==
+                                      LogicalKeyboardKey.space) {
+                                // "Edit" shown (preview mode) → switch to edit
+                                // and move focus to Notes.
+                                // "Preview" shown (edit mode) → toggle to preview
+                                // and stay on the button.
+                                if (_showPreview) {
+                                  setState(() => _showPreview = false);
+                                  _notesFocus.requestFocus();
+                                } else {
+                                  setState(() => _showPreview = true);
+                                  _toggleFocus.requestFocus();
+                                }
+                                return KeyEventResult.handled;
+                              }
+                              if (event.logicalKey == LogicalKeyboardKey.tab &&
+                                  !HardwareKeyboard.instance.isShiftPressed) {
+                                if (!_showPreview) {
+                                  _notesFocus.requestFocus();
+                                } else {
+                                  _tagFocus.requestFocus();
+                                }
+                                return KeyEventResult.handled;
+                              }
+                              return KeyEventResult.ignored;
+                            },
+                            child: TextButton.icon(
+                              focusNode: _toggleFocus,
+                              onPressed: () =>
+                                  setState(() => _showPreview = !_showPreview),
+                              icon: Icon(
+                                _showPreview
+                                    ? Icons.edit_outlined
+                                    : Icons.preview_outlined,
+                                size: 16,
+                              ),
+                              label: Text(_showPreview ? 'Edit' : 'Preview'),
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Gap(8),
+                      _showPreview
+                          ? Container(
+                              width: double.infinity,
+                              constraints: const BoxConstraints(minHeight: 200),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: cs.outline),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: _note.text.trim().isEmpty
+                                  ? Text(
+                                      'Nothing to preview.',
+                                      style: TextStyle(
+                                        color: cs.onSurfaceVariant,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    )
+                                  : SelectionArea(
+                                      onSelectionChanged: (value) {
+                                        final text = value?.plainText ?? '';
+                                        if (text.isNotEmpty) {
+                                          writePrimarySelection(text);
+                                        }
+                                      },
+                                      child: MarkdownBody(
+                                        data: _note.text,
+                                        shrinkWrap: true,
+                                        styleSheet:
+                                            MarkdownStyleSheet.fromTheme(
+                                              Theme.of(context),
+                                            ),
+                                      ),
+                                    ),
+                            )
+                          : EmacsTextField(
+                              controller: _note,
+                              focusNode: _notesFocus,
+                              outerScrollController: _bodyScrollCtrl,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Details, thoughts, markdown…',
+                                alignLabelWithHint: true,
+                              ),
+                            ),
+                    ],
+                  ),
+                ),
+
+                // ── Location ────────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      editSectionLabel(
+                        context,
+                        'Location',
+                        tooltip: entryLocationTooltip,
+                      ),
+                      const Gap(8),
+                      TextField(
+                        controller: _location,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                          hintText: 'Where did this happen?',
+                          prefixIcon: Icon(Icons.place_outlined, size: 18),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

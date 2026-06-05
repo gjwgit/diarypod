@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 0.2 Basic Functionality
 
++ EDIT -> CANCEL check to SAVE note [0.1.17 20260605 gjw]
 + Support PDF for individual entries [0.1.16 20260526 gjw]
 + Darker titles [0.1.15 20260525 gjw]
 + Scroll NOTES as we type [0.1.14 20260515 gjw]
