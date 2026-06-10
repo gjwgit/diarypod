@@ -145,6 +145,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.0"
+  cryptography_plus:
+    dependency: transitive
+    description:
+      name: cryptography_plus
+      sha256: edf96fc96518368b11bb1ba33b515f59aa5a55b0aa7533c0e1813399cf81130e
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -1046,26 +1054,26 @@ packages:
     dependency: transitive
     description:
       name: solid_auth
-      sha256: "5d042cd189fe07ab03283db38d2316d7fc34a3025645631fbadf5f9e0919e5ae"
+      sha256: "6274029fc5385b68052e13e3af71040e76f21850e99ef56820cbdc07d2de2d7f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   solidpod:
     dependency: "direct main"
     description:
       name: solidpod
-      sha256: faadafbc582d91f02c3312984818c785bc8529939eb457b070b99f8a3487f693
+      sha256: "325f7bbbd560ac5d6a5562cf0faa7546c8f6ec21ed4be29a1818671dbfe82697"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   solidui:
     dependency: "direct main"
     description:
       name: solidui
-      sha256: c24fe283611e5a3c738999f3c29ce11925deae3fc3c61b8fe7ef297e3e887e26
+      sha256: "6aadebc990848da35fd2e8f8c4e0d21914197bb874b44448c8be61a8820df4b3"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.5"
+    version: "1.0.6"
   source_span:
     dependency: transitive
     description:
