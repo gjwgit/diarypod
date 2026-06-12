@@ -37,7 +37,7 @@ import 'package:diarypod/constants/app.dart';
 // data vault on their chosen Solid server.
 
 class App extends StatefulWidget {
-  const App();
+  const App({super.key});
 
   @override
   State<App> createState() => AppState();

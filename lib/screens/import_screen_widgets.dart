@@ -8,9 +8,51 @@
 
 library;
 
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import 'package:gap/gap.dart';
+import 'package:printing/printing.dart';
+
+/// Push a full-screen PDF preview of [pdfBytes]. Sharing is replaced with a
+/// Save action; [onSaved] is called with the chosen save path (or null on
+/// web / cancel) so the caller can show feedback. [title] is the app-bar
+/// title and [onSaveAs] performs the actual save.
+Future<void> showPdfPreviewPage({
+  required BuildContext context,
+  required Uint8List pdfBytes,
+  required String pdfName,
+  required String title,
+  required Future<String?> Function(Uint8List bytes, String name) onSaveAs,
+  required void Function(String? path) onSaved,
+}) {
+  return Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: PdfPreview(
+          build: (_) async => pdfBytes,
+          pdfFileName: pdfName,
+          canChangePageFormat: false,
+          canChangeOrientation: false,
+          canDebug: false,
+          allowSharing: false,
+          actions: [
+            PdfPreviewAction(
+              icon: const Icon(Icons.save_alt),
+              onPressed: (ctx, build, pageFormat) async {
+                final bytes = await build(pageFormat);
+                final path = await onSaveAs(bytes, pdfName);
+                onSaved(path);
+              },
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
 class ImportActionCard extends StatelessWidget {
   final IconData icon;

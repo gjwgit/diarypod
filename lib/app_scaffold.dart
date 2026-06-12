@@ -85,7 +85,7 @@ class _AppScaffoldState extends State<AppScaffold> {
         ),
         SolidMenuItem(
           title: importExportTitle,
-          icon: Icons.import_export,
+          icon: Icons.save_alt,
           tooltip: importExportTooltip,
           child: ImportScreen(),
         ),

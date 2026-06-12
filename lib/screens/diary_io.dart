@@ -336,7 +336,9 @@ class DiaryIO {
 
   // ── PDF export ─────────────────────────────────────────────────────────────
 
-  static Future<String?> exportPdf(AppProvider provider) async {
+  /// Build the diary PDF bytes for all entries in [provider]. Used by the
+  /// View section to show an in-app preview.
+  static Future<Uint8List> buildDiaryPdfBytes(AppProvider provider) async {
     final fmt = DateFormat('EEE d MMM yyyy  HH:mm');
     final now = DateTime.now();
     final entries = provider.entries;
@@ -401,14 +403,22 @@ class DiaryIO {
       ),
     );
 
-    final pdfBytes = await doc.save();
-    final pdfName = 'diarypod_diary_${_ts()}.pdf';
+    return doc.save();
+  }
 
+  /// Default filename for a full-diary PDF export.
+  static String diaryPdfName() => 'diarypod_diary_${_ts()}.pdf';
+
+  /// Save [pdfBytes] to a user-chosen file. Returns the saved path, or null
+  /// if cancelled or on web (where it falls back to the print/share sheet).
+  static Future<String?> savePdfBytes(
+    Uint8List pdfBytes,
+    String pdfName,
+  ) async {
     if (kIsWeb) {
       await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: pdfName);
-      return null; // web: printed via dialog, no file path
+      return null;
     }
-
     final savePath = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,

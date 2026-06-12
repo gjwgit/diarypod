@@ -12,15 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:emacs_text_field/emacs_text_field.dart'
-    show EmacsTextField, attachPrimarySelection, writePrimarySelection;
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+    show attachPrimarySelection;
 import 'package:gap/gap.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/constants/tooltips.dart';
 import 'package:diarypod/models/diary_entry.dart';
+import 'package:diarypod/pages/edit_fields/entry_notes_field.dart';
+import 'package:diarypod/pages/edit_fields/entry_title_date_fields.dart';
 import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
@@ -253,9 +253,7 @@ class _EntryEditState extends State<EntryEdit> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     final provider = context.read<AppProvider>();
-    final fmt = DateFormat('EEE d MMM yyyy  HH:mm');
     final canSave = _title.text.trim().isNotEmpty;
 
     return Focus(
@@ -318,106 +316,14 @@ class _EntryEditState extends State<EntryEdit> {
             child: Column(
               children: [
                 // ── Title + Date ────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title — autofocus, Tab skips Date and moves to Tags.
-                      editSectionLabel(
-                        context,
-                        'Title',
-                        tooltip: entryTitleTooltip,
-                      ),
-                      const Gap(8),
-                      Focus(
-                        onKeyEvent: (_, event) {
-                          if (event is! KeyDownEvent) {
-                            return KeyEventResult.ignored;
-                          }
-                          if (event.logicalKey == LogicalKeyboardKey.tab &&
-                              !HardwareKeyboard.instance.isShiftPressed) {
-                            _tagFocus.requestFocus();
-                            return KeyEventResult.handled;
-                          }
-                          return KeyEventResult.ignored;
-                        },
-                        child: TextField(
-                          controller: _title,
-                          focusNode: _titleFocus,
-                          autofocus: true,
-                          textInputAction: TextInputAction.next,
-                          onChanged: (_) => setState(() {}),
-                          onSubmitted: (_) => _tagFocus.requestFocus(),
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            isDense: true,
-                            hintText: 'What happened?',
-                          ),
-                          textCapitalization: TextCapitalization.sentences,
-                        ),
-                      ),
-                      const Gap(16),
-                      // Date — focusable via mouse/tap; excluded from Tab order
-                      // (skipTraversal: true on _dateFocus). Enter/Space opens picker.
-                      editSectionLabel(
-                        context,
-                        'Date & Time',
-                        tooltip: entryDateTooltip,
-                      ),
-                      const Gap(8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Focus(
-                              focusNode: _dateFocus,
-                              onKeyEvent: (_, event) {
-                                if (event is KeyDownEvent) {
-                                  if (event.logicalKey ==
-                                          LogicalKeyboardKey.enter ||
-                                      event.logicalKey ==
-                                          LogicalKeyboardKey.space) {
-                                    _pickDate();
-                                    return KeyEventResult.handled;
-                                  }
-                                }
-                                return KeyEventResult.ignored;
-                              },
-                              child: InkWell(
-                                onTap: _pickDate,
-                                borderRadius: BorderRadius.circular(4),
-                                child: Builder(
-                                  builder: (ctx) {
-                                    final hasFocus = Focus.of(ctx).hasFocus;
-                                    return InputDecorator(
-                                      decoration: InputDecoration(
-                                        border: const OutlineInputBorder(),
-                                        isDense: true,
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                            color: Theme.of(
-                                              ctx,
-                                            ).colorScheme.primary,
-                                            width: 2,
-                                          ),
-                                        ),
-                                        filled: hasFocus,
-                                        fillColor: Theme.of(ctx)
-                                            .colorScheme
-                                            .primaryContainer
-                                            .withValues(alpha: 0.15),
-                                      ),
-                                      child: Text(fmt.format(_eventDate)),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                EntryTitleDateFields(
+                  title: _title,
+                  titleFocus: _titleFocus,
+                  tagFocus: _tagFocus,
+                  dateFocus: _dateFocus,
+                  eventDate: _eventDate,
+                  onChanged: () => setState(() {}),
+                  onPickDate: _pickDate,
                 ),
 
                 // ── Tags ─────────────────────────────────────────────────────
@@ -443,118 +349,16 @@ class _EntryEditState extends State<EntryEdit> {
                 ),
 
                 // ── Notes ────────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          editSectionLabel(
-                            context,
-                            'Notes',
-                            tooltip: entryNotesTooltip,
-                          ),
-                          const Spacer(),
-                          Focus(
-                            onKeyEvent: (_, event) {
-                              if (event is! KeyDownEvent) {
-                                return KeyEventResult.ignored;
-                              }
-                              if (event.logicalKey ==
-                                      LogicalKeyboardKey.enter ||
-                                  event.logicalKey ==
-                                      LogicalKeyboardKey.space) {
-                                // "Edit" shown (preview mode) → switch to edit
-                                // and move focus to Notes.
-                                // "Preview" shown (edit mode) → toggle to preview
-                                // and stay on the button.
-                                if (_showPreview) {
-                                  setState(() => _showPreview = false);
-                                  _notesFocus.requestFocus();
-                                } else {
-                                  setState(() => _showPreview = true);
-                                  _toggleFocus.requestFocus();
-                                }
-                                return KeyEventResult.handled;
-                              }
-                              if (event.logicalKey == LogicalKeyboardKey.tab &&
-                                  !HardwareKeyboard.instance.isShiftPressed) {
-                                if (!_showPreview) {
-                                  _notesFocus.requestFocus();
-                                } else {
-                                  _tagFocus.requestFocus();
-                                }
-                                return KeyEventResult.handled;
-                              }
-                              return KeyEventResult.ignored;
-                            },
-                            child: TextButton.icon(
-                              focusNode: _toggleFocus,
-                              onPressed: () =>
-                                  setState(() => _showPreview = !_showPreview),
-                              icon: Icon(
-                                _showPreview
-                                    ? Icons.edit_outlined
-                                    : Icons.preview_outlined,
-                                size: 16,
-                              ),
-                              label: Text(_showPreview ? 'Edit' : 'Preview'),
-                              style: TextButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                                padding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Gap(8),
-                      _showPreview
-                          ? Container(
-                              width: double.infinity,
-                              constraints: const BoxConstraints(minHeight: 200),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: cs.outline),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: _note.text.trim().isEmpty
-                                  ? Text(
-                                      'Nothing to preview.',
-                                      style: TextStyle(
-                                        color: cs.onSurfaceVariant,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    )
-                                  : SelectionArea(
-                                      onSelectionChanged: (value) {
-                                        final text = value?.plainText ?? '';
-                                        if (text.isNotEmpty) {
-                                          writePrimarySelection(text);
-                                        }
-                                      },
-                                      child: MarkdownBody(
-                                        data: _note.text,
-                                        shrinkWrap: true,
-                                        styleSheet:
-                                            MarkdownStyleSheet.fromTheme(
-                                              Theme.of(context),
-                                            ),
-                                      ),
-                                    ),
-                            )
-                          : EmacsTextField(
-                              controller: _note,
-                              focusNode: _notesFocus,
-                              outerScrollController: _bodyScrollCtrl,
-                              decoration: const InputDecoration(
-                                border: OutlineInputBorder(),
-                                hintText: 'Details, thoughts, markdown…',
-                                alignLabelWithHint: true,
-                              ),
-                            ),
-                    ],
-                  ),
+                EntryNotesField(
+                  note: _note,
+                  notesFocus: _notesFocus,
+                  toggleFocus: _toggleFocus,
+                  tagFocus: _tagFocus,
+                  bodyScrollCtrl: _bodyScrollCtrl,
+                  showPreview: _showPreview,
+                  onToggle: () => setState(() => _showPreview = !_showPreview),
+                  onShowEditor: () => setState(() => _showPreview = false),
+                  onShowPreview: () => setState(() => _showPreview = true),
                 ),
 
                 // ── Location ────────────────────────────────────────────────

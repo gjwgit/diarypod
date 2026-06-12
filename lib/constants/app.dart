@@ -38,7 +38,7 @@ const String appTitle = 'DiaryPod - Notes from Meetings';
 const String listTitle = 'Diary';
 const String upcomingTitle = 'Upcoming';
 const String calendarTitle = 'Calendar';
-const String importExportTitle = 'Import / Export';
+const String importExportTitle = 'Backup';
 
 // ── Nav tooltips ─────────────────────────────────────────────────────────────
 
@@ -51,9 +51,9 @@ const String calendarTooltip =
     '**Calendar**\n\nView diary entries on a monthly calendar.';
 
 const String importExportTooltip =
-    '**Import / Export**\n\n'
-    'Import entries from a JSON backup, or export your diary '
-    'to JSON, Markdown, or PDF.';
+    '**Backup**\n\n'
+    'Back up and restore all entries, view your diary as a PDF, '
+    'or import and export Markdown.';
 
 // ── Pod storage ───────────────────────────────────────────────────────────────
 
