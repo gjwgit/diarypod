@@ -75,12 +75,26 @@ class _EntryEditState extends State<EntryEdit> {
     _removePrimaryLocation = attachPrimarySelection(_location);
     _eventDate = e?.eventDate ?? DateTime.now();
     _tags = List<String>.from(e?.tags ?? []);
+
+    // Rebuild on any text edit so the Save button's enabled state tracks
+    // _hasChanges live. Date and tag changes call setState in their own
+    // handlers, so they re-evaluate _hasChanges too.
+    for (final c in [_title, _note, _location]) {
+      c.addListener(_onChanged);
+    }
   }
+
+  /// Rebuild when a tracked text field changes so the Save button's enabled
+  /// state reflects [_hasChanges].
+  void _onChanged() => setState(() {});
 
   @override
   void dispose() {
     _removePrimaryTitle();
     _removePrimaryLocation();
+    for (final c in [_title, _note, _location]) {
+      c.removeListener(_onChanged);
+    }
     _title.dispose();
     _note.dispose();
     _location.dispose();
@@ -254,7 +268,7 @@ class _EntryEditState extends State<EntryEdit> {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<AppProvider>();
-    final canSave = _title.text.trim().isNotEmpty;
+    final canSave = _title.text.trim().isNotEmpty && _hasChanges;
 
     return Focus(
       onKeyEvent: (node, event) {

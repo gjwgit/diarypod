@@ -1,8 +1,8 @@
 # Diary Pod Change Log
 
-Noted here are the high level changes for the app.  Each update
-includes a short user-oriented description.  The next release is 0.2
-following incremental updates through the 0.1.n series.
+Noted below are the high level changes for the app.  Each update
+includes a short user-oriented description, version number, date, and
+developer.
 
 You can run the app in your
 [**browser**](https://diarypod.solidcommunity.au) or else download and
@@ -37,11 +37,13 @@ This app has been pair programmed by [Graham
 Williams](https://togaware.com/Graham.Williams.html) and [Claude
 Code](https://claude.com/product/claude-code).
 
-## ToDo
+## 1.0 Updated Key
 
-## 0.2 Basic Functionality
++ Enable SAVE only when entry has changed [1.0.1 20260614 gjw]
++ Updated key. BACKUP with PDF support. Standard structure [1.0.0 20260612 gjw]
 
-+ BACKUP with PDF support and stabard structure [0.1.19 20260612 gjw]
+## 0.1 Basic Functionality
+
 + Allow access to other ENTRIES while editing [0.1.18 20260605 gjw]
 + EDIT -> CANCEL check to SAVE note [0.1.17 20260605 gjw]
 + Support PDF for individual entries [0.1.16 20260526 gjw]
