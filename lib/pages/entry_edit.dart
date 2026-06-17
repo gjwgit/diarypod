@@ -26,7 +26,7 @@ import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
 class EntryEdit extends StatefulWidget {
-  const EntryEdit({super.key, this.entry, this.initialPreview});
+  const EntryEdit({super.key, this.entry, this.initialPreview, this.onSave});
 
   final DiaryEntry? entry;
 
@@ -34,6 +34,10 @@ class EntryEdit extends StatefulWidget {
   /// preview, new entries open in edit.  Pass [false] to force edit mode
   /// even for a pre-populated entry (e.g. created from the search bar).
   final bool? initialPreview;
+
+  /// Called with the saved entry after the user taps Save.  The editor stays
+  /// open; the caller is responsible for updating the provider and Pod.
+  final void Function(DiaryEntry)? onSave;
 
   @override
   State<EntryEdit> createState() => _EntryEditState();
@@ -50,6 +54,13 @@ class _EntryEditState extends State<EntryEdit> {
   bool get _isNew => widget.entry == null;
   late bool _showPreview;
   String? _chordPrefix;
+
+  // Snapshot of the last-saved state — used to compute _hasChanges.
+  late String _savedTitle;
+  late String _savedNote;
+  late String _savedLocation;
+  late DateTime _savedEventDate;
+  late List<String> _savedTags;
 
   // Focus nodes for keyboard tab traversal.
   // _dateFocus is excluded from the Tab order (skipTraversal); it can still
@@ -75,6 +86,7 @@ class _EntryEditState extends State<EntryEdit> {
     _removePrimaryLocation = attachPrimarySelection(_location);
     _eventDate = e?.eventDate ?? DateTime.now();
     _tags = List<String>.from(e?.tags ?? []);
+    _snapshotSavedState();
 
     // Rebuild on any text edit so the Save button's enabled state tracks
     // _hasChanges live. Date and tag changes call setState in their own
@@ -82,6 +94,15 @@ class _EntryEditState extends State<EntryEdit> {
     for (final c in [_title, _note, _location]) {
       c.addListener(_onChanged);
     }
+  }
+
+  /// Snapshot the current field values as the last-saved baseline.
+  void _snapshotSavedState() {
+    _savedTitle = _title.text.trim();
+    _savedNote = _note.text;
+    _savedLocation = _location.text.trim();
+    _savedEventDate = _eventDate;
+    _savedTags = List<String>.from(_tags);
   }
 
   /// Rebuild when a tracked text field changes so the Save button's enabled
@@ -146,37 +167,28 @@ class _EntryEditState extends State<EntryEdit> {
       createdAt: widget.entry?.createdAt ?? now,
       modifiedAt: now,
     );
-    Navigator.of(context).pop(entry);
+    widget.onSave?.call(entry);
+    // Snapshot saved state so _hasChanges becomes false and Save deactivates.
+    setState(_snapshotSavedState);
   }
 
-  /// True when the user has modified any field from the original entry
-  /// (or, for a new entry, entered anything at all).
+  /// True when the user has modified any field since the last save.
   bool get _hasChanges {
-    final e = widget.entry;
-    if (e == null) {
-      // New entry: dirty if any field has content.
-      return _title.text.trim().isNotEmpty ||
-          _note.text.trim().isNotEmpty ||
-          _location.text.trim().isNotEmpty ||
-          _tags.isNotEmpty;
-    }
-    // Existing entry: compare each editable field to the original.
     final tagsChanged =
-        _tags.length != e.tags.length ||
+        _tags.length != _savedTags.length ||
         !List.generate(
           _tags.length,
-          (i) => _tags[i] == e.tags[i],
+          (i) => _tags[i] == _savedTags[i],
         ).every((x) => x);
-    return _title.text.trim() != e.title ||
-        _note.text != e.note ||
-        _location.text.trim() != (e.location ?? '') ||
-        _eventDate != e.eventDate ||
+    return _title.text.trim() != _savedTitle ||
+        _note.text != _savedNote ||
+        _location.text.trim() != _savedLocation ||
+        _eventDate != _savedEventDate ||
         tagsChanged;
   }
 
   /// Pop the editor, but if there are unsaved changes first ask the user
-  /// whether to save, discard, or keep editing. Returns nothing — it
-  /// handles the navigation itself.
+  /// whether to save, discard, or keep editing.
   Future<void> _confirmDiscard() async {
     if (!_hasChanges) {
       Navigator.of(context).pop();
@@ -208,14 +220,10 @@ class _EntryEditState extends State<EntryEdit> {
     if (!mounted) return;
     switch (action) {
       case 'save':
-        // Only save if the title is valid; otherwise stay in the editor.
-        if (_title.text.trim().isNotEmpty) {
-          _save();
-        }
+        if (_title.text.trim().isNotEmpty) _save();
       case 'discard':
         Navigator.of(context).pop();
       default:
-        // 'keep' or dismissed — stay in the editor.
         break;
     }
   }
@@ -309,12 +317,10 @@ class _EntryEditState extends State<EntryEdit> {
                 tooltip: 'Reference another note',
                 onPressed: _openReference,
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: TextButton(
-                  onPressed: _confirmDiscard,
-                  child: const Text('Cancel'),
-                ),
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back',
+                onPressed: _confirmDiscard,
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 8),

@@ -99,7 +99,7 @@ class _ListScreenState extends State<ListScreen> {
   // ── Entry actions ─────────────────────────────────────────────────────────
 
   Future<void> _addEntry(BuildContext context, AppProvider provider) async {
-    final entry = await showDialog<DiaryEntry>(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => EntryEdit(
@@ -107,16 +107,16 @@ class _ListScreenState extends State<ListScreen> {
             ? AppProvider.newEntry().copyWith(title: _query.trim())
             : null,
         initialPreview: false,
+        onSave: (entry) {
+          provider.addEntry(entry);
+          if (_query.isNotEmpty) {
+            _search.clear();
+            setState(() => _query = '');
+          }
+          _saveToPod(context, provider);
+        },
       ),
     );
-    if (entry != null && context.mounted) {
-      provider.addEntry(entry);
-      if (_query.isNotEmpty) {
-        _search.clear();
-        setState(() => _query = '');
-      }
-      await _saveToPod(context, provider);
-    }
   }
 
   Future<void> _editEntry(
@@ -124,16 +124,18 @@ class _ListScreenState extends State<ListScreen> {
     AppProvider provider,
     DiaryEntry entry,
   ) async {
-    final updated = await Navigator.of(context).push<DiaryEntry>(
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => EntryEdit(entry: entry),
+        builder: (_) => EntryEdit(
+          entry: entry,
+          onSave: (updated) {
+            provider.updateEntry(updated);
+            _saveToPod(context, provider);
+          },
+        ),
       ),
     );
-    if (updated != null && context.mounted) {
-      provider.updateEntry(updated);
-      await _saveToPod(context, provider);
-    }
   }
 
   Future<void> _duplicateEntry(
@@ -148,16 +150,18 @@ class _ListScreenState extends State<ListScreen> {
       createdAt: now,
       modifiedAt: now,
     );
-    final updated = await Navigator.of(context).push<DiaryEntry>(
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => EntryEdit(entry: duplicate),
+        builder: (_) => EntryEdit(
+          entry: duplicate,
+          onSave: (updated) {
+            provider.addEntry(updated);
+            _saveToPod(context, provider);
+          },
+        ),
       ),
     );
-    if (updated != null && context.mounted) {
-      provider.addEntry(updated);
-      await _saveToPod(context, provider);
-    }
   }
 
   Future<void> _deleteEntry(

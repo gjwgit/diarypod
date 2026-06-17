@@ -44,27 +44,25 @@ class _CalendarScreenState extends State<CalendarScreen> {
     AppProvider provider, [
     DateTime? day,
   ]) async {
-    final entry = await showDialog<DiaryEntry>(
+    await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => EntryEdit(
         entry: AppProvider.newEntry(
           eventDate: day ?? _selectedDay ?? DateTime.now(),
         ),
+        onSave: (entry) {
+          provider.addEntry(entry);
+          provider.saveToPod().catchError((e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+            }
+          });
+        },
       ),
     );
-    if (entry != null && context.mounted) {
-      provider.addEntry(entry);
-      try {
-        await provider.saveToPod();
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-        }
-      }
-    }
   }
 
   Future<void> _editEntry(
@@ -72,24 +70,24 @@ class _CalendarScreenState extends State<CalendarScreen> {
     AppProvider provider,
     DiaryEntry entry,
   ) async {
-    final updated = await Navigator.of(context).push<DiaryEntry>(
+    await Navigator.of(context).push<void>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => EntryEdit(entry: entry),
+        builder: (_) => EntryEdit(
+          entry: entry,
+          onSave: (updated) {
+            provider.updateEntry(updated);
+            provider.saveToPod().catchError((e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+              }
+            });
+          },
+        ),
       ),
     );
-    if (updated != null && context.mounted) {
-      provider.updateEntry(updated);
-      try {
-        await provider.saveToPod();
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-        }
-      }
-    }
   }
 
   Future<void> _deleteEntry(
