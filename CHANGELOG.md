@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Add REFRESH button [1.0.3 20260619 gjw]
 + Improve the SAVE/BACK workflow [1.0.2 20260617 gjw]
 + Enable SAVE only when entry has changed [1.0.1 20260614 gjw]
 + Updated key. BACKUP with PDF support. Standard structure [1.0.0 20260612 gjw]

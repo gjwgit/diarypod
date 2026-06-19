@@ -8,6 +8,8 @@
 
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import 'package:uuid/uuid.dart';
@@ -138,6 +140,39 @@ class AppProvider extends ChangeNotifier {
   Future<void> saveToPod() async {
     if (_testMode) return;
     await PodService.save(_entries);
+  }
+
+  /// A stable content signature of the current in-memory entries, used to
+  /// detect whether a reload from the Pod actually changed anything.
+  /// Order-independent (sorted) so mere reordering is not a change.
+  String _entriesSignature() {
+    final items = _entries.map((e) => jsonEncode(e.toJson())).toList()..sort();
+    return items.join('\u0001');
+  }
+
+  /// Reloads entries from the Pod, replacing the in-memory data, and reports
+  /// whether the Pod copy differed from what was held in memory.
+  ///
+  /// Returns true if the reload changed the data (the Pod was updated by
+  /// another instance/app), false if the data was already up to date.
+  ///
+  /// Reusable "refresh from Pod" pattern: snapshot a signature, reload, compare.
+  /// Note: this bypasses the [loadFromPod] one-shot `_hasLoaded` guard so a
+  /// refresh always re-reads from the Pod.
+  Future<bool> refreshFromPod() async {
+    if (_testMode) return false;
+    final before = _entriesSignature();
+    _loading = true;
+    notifyListeners();
+    try {
+      _entries = await PodService.load();
+      _hasLoaded = true;
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+    final after = _entriesSignature();
+    return before != after;
   }
 
   /// For unit tests — bypasses Pod I/O.

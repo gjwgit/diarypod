@@ -19,6 +19,7 @@ import 'package:diarypod/screens/import_screen.dart';
 import 'package:diarypod/screens/list_screen.dart';
 import 'package:diarypod/screens/upcoming_screen.dart';
 import 'package:diarypod/services/app_provider.dart';
+import 'package:diarypod/widgets/pod_refresh_action.dart';
 
 class AppScaffold extends StatefulWidget {
   const AppScaffold({super.key});
@@ -57,12 +58,18 @@ class _AppScaffoldState extends State<AppScaffold> {
   Widget build(BuildContext context) {
     return SolidScaffold(
       themeToggle: const SolidThemeToggleConfig(enabled: true),
-      appBar: const SolidAppBarConfig(
+      appBar: SolidAppBarConfig(
         title: appName,
-        versionConfig: SolidVersionConfig(
+        versionConfig: const SolidVersionConfig(
           changelogUrl:
               'https://github.com/gjwgit/diarypod/blob/dev/CHANGELOG.md',
         ),
+        actions: [
+          buildPodRefreshAction(
+            context: context,
+            onRefresh: context.read<AppProvider>().refreshFromPod,
+          ),
+        ],
       ),
       menu: const [
         SolidMenuItem(
