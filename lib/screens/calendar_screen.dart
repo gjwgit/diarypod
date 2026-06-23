@@ -52,7 +52,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
           eventDate: day ?? _selectedDay ?? DateTime.now(),
         ),
         onSave: (entry) {
-          provider.addEntry(entry);
+          if (provider.entries.any((e) => e.id == entry.id)) {
+            provider.updateEntry(entry);
+          } else {
+            provider.addEntry(entry);
+          }
           provider.saveToPod().catchError((e) {
             if (context.mounted) {
               ScaffoldMessenger.of(

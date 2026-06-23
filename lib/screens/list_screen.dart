@@ -108,10 +108,15 @@ class _ListScreenState extends State<ListScreen> {
             : null,
         initialPreview: false,
         onSave: (entry) {
-          provider.addEntry(entry);
-          if (_query.isNotEmpty) {
-            _search.clear();
-            setState(() => _query = '');
+          // Use updateEntry if already saved once, addEntry on first save.
+          if (provider.entries.any((e) => e.id == entry.id)) {
+            provider.updateEntry(entry);
+          } else {
+            provider.addEntry(entry);
+            if (_query.isNotEmpty) {
+              _search.clear();
+              setState(() => _query = '');
+            }
           }
           _saveToPod(context, provider);
         },
@@ -156,7 +161,11 @@ class _ListScreenState extends State<ListScreen> {
         builder: (_) => EntryEdit(
           entry: duplicate,
           onSave: (updated) {
-            provider.addEntry(updated);
+            if (provider.entries.any((e) => e.id == updated.id)) {
+              provider.updateEntry(updated);
+            } else {
+              provider.addEntry(updated);
+            }
             _saveToPod(context, provider);
           },
         ),

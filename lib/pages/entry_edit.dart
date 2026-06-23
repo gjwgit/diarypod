@@ -72,9 +72,12 @@ class _EntryEditState extends State<EntryEdit> {
   final _bodyScrollCtrl = ScrollController();
   final _tagFocus = FocusNode();
 
+  late final String _entryId;
+
   @override
   void initState() {
     super.initState();
+    _entryId = widget.entry?.id ?? const Uuid().v4();
     // Existing entries open in preview; new entries open in edit mode.
     _showPreview = widget.initialPreview ?? !_isNew;
     final e = widget.entry;
@@ -158,7 +161,7 @@ class _EntryEditState extends State<EntryEdit> {
     if (title.isEmpty) return;
     final now = DateTime.now();
     final entry = DiaryEntry(
-      id: widget.entry?.id ?? const Uuid().v4(),
+      id: _entryId,
       eventDate: _eventDate,
       title: title,
       note: _note.text,

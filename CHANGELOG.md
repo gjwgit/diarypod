@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Bug fix of duplicate entries when SAVE in editor [1.0.4 20260623 gjw]
 + Add REFRESH button [1.0.3 20260619 gjw]
 + Improve the SAVE/BACK workflow [1.0.2 20260617 gjw]
 + Enable SAVE only when entry has changed [1.0.1 20260614 gjw]
