@@ -37,14 +37,20 @@ class EntryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final timeFmt = DateFormat('HH:mm');
+    final now = DateTime.now();
+    final today = DateUtils.dateOnly(now);
+    final eventDay = DateUtils.dateOnly(entry.eventDate);
     final isFuture = entry.isFuture;
-    final isPast = !isFuture && entry.eventDate.isBefore(DateTime.now());
+    final isToday = !isFuture && eventDay == today;
+    final isPast = !isFuture && !isToday;
 
     return Card(
       color: isFuture
           ? cs.primaryContainer.withValues(alpha: 0.35)
+          : isToday
+          ? Colors.blue.withValues(alpha: 0.15)
           : isPast
-          ? const Color(0xFF4CAF50).withValues(alpha: 0.10)
+          ? const Color(0xFF4CAF50).withValues(alpha: 0.30)
           : cs.surface,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -61,8 +67,10 @@ class EntryTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isFuture
                       ? cs.primary
+                      : isToday
+                      ? Colors.blue.shade700
                       : isPast
-                      ? const Color(0xFF4CAF50).withValues(alpha: 0.25)
+                      ? const Color(0xFF2E7D32)
                       : cs.secondaryContainer,
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -76,8 +84,10 @@ class EntryTile extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.9)
+                            : isToday
+                            ? Colors.white.withValues(alpha: 0.9)
                             : isPast
-                            ? const Color(0xFF2E7D32)
+                            ? Colors.white
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -88,8 +98,10 @@ class EntryTile extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: isFuture
                             ? cs.onPrimary
+                            : isToday
+                            ? Colors.white
                             : isPast
-                            ? const Color(0xFF2E7D32)
+                            ? Colors.white
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -99,8 +111,10 @@ class EntryTile extends StatelessWidget {
                         fontSize: 11,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.8)
+                            : isToday
+                            ? Colors.white.withValues(alpha: 0.85)
                             : isPast
-                            ? const Color(0xFF2E7D32).withValues(alpha: 0.85)
+                            ? Colors.white.withValues(alpha: 0.85)
                             : cs.onSecondaryContainer,
                       ),
                     ),
@@ -110,8 +124,10 @@ class EntryTile extends StatelessWidget {
                         fontSize: 10,
                         color: isFuture
                             ? cs.onPrimary.withValues(alpha: 0.7)
+                            : isToday
+                            ? Colors.white.withValues(alpha: 0.75)
                             : isPast
-                            ? const Color(0xFF2E7D32).withValues(alpha: 0.75)
+                            ? Colors.white.withValues(alpha: 0.75)
                             : cs.onSecondaryContainer.withValues(alpha: 0.7),
                       ),
                     ),
@@ -138,10 +154,10 @@ class EntryTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             entry.title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: Colors.black,
+                              color: cs.onSurface,
                             ),
                           ),
                         ),

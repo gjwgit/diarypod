@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Improve colours for diary entries [1.0.5 20260623 gjw]
 + Bug fix of duplicate entries when SAVE in editor [1.0.4 20260623 gjw]
 + Add REFRESH button [1.0.3 20260619 gjw]
 + Improve the SAVE/BACK workflow [1.0.2 20260617 gjw]
