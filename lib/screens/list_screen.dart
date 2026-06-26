@@ -243,7 +243,15 @@ class _ListScreenState extends State<ListScreen> {
           onAdd: () => _addEntry(context, provider),
           onFilter: () => _showFilterSheet(context, provider),
           onChanged: (v) {
-            _search.value = _search.value.copyWith(text: v);
+            // Only push the value back into the controller when it differs
+            // (e.g. the clear button). Reset the selection to the end of the
+            // new text so a stale cursor offset can't exceed the new length.
+            if (_search.text != v) {
+              _search.value = TextEditingValue(
+                text: v,
+                selection: TextSelection.collapsed(offset: v.length),
+              );
+            }
             setState(() => _query = v);
           },
           onSubmitted: (v) {

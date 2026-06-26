@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Bug fix with X button which should reset index [1.0.9 20260626 gjw]
 + Repalce back arrow with BACK button [1.0.8 20260626 gjw]
 + Unify search bar rounded corners and + inside the field [1.0.7 20260626 gjw]
 + Update ABOUT [1.0.6 20260623 gjw]
