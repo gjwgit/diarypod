@@ -320,10 +320,12 @@ class _EntryEditState extends State<EntryEdit> {
                 tooltip: 'Reference another note',
                 onPressed: _openReference,
               ),
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                tooltip: 'Back',
-                onPressed: _confirmDiscard,
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilledButton(
+                  onPressed: _confirmDiscard,
+                  child: const Text('Back'),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
