@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Unify search bar rounded corners and + inside the field [1.0.7 20260626 gjw]
 + Update ABOUT [1.0.6 20260623 gjw]
 + Improve colours for diary entries [1.0.5 20260623 gjw]
 + Bug fix of duplicate entries when SAVE in editor [1.0.4 20260623 gjw]

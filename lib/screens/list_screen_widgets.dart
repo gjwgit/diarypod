@@ -49,9 +49,11 @@ class ListSearchBar extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Search entries…',
                 prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: query.isEmpty
-                    ? null
-                    : MarkdownTooltip(
+                suffixIcon: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (query.isNotEmpty)
+                      MarkdownTooltip(
                         message:
                             '**Clear search**\n\nRemove the search text and show all entries.',
                         child: IconButton(
@@ -59,8 +61,19 @@ class ListSearchBar extends StatelessWidget {
                           onPressed: () => onChanged(''),
                         ),
                       ),
+                    MarkdownTooltip(
+                      message: '**Add entry**\n\nCreate a new diary entry.',
+                      child: IconButton(
+                        icon: const Icon(Icons.add, size: 20),
+                        onPressed: onAdd,
+                      ),
+                    ),
+                  ],
+                ),
                 isDense: true,
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                ),
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
@@ -79,13 +92,6 @@ class ListSearchBar extends StatelessWidget {
                 '- Future events are shown with a blue badge\n'
                 '- Use the filter button to narrow by type or tag',
             child: Icon(Icons.help_outline, size: 18),
-          ),
-          MarkdownTooltip(
-            message: '**Add entry**\n\nCreate a new diary entry.',
-            child: IconButton(
-              icon: const Icon(Icons.add_circle_outline, size: 20),
-              onPressed: onAdd,
-            ),
           ),
           MarkdownTooltip(
             message: '**Filter**\n\nFilter by past/future or by tags.',
