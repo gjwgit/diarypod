@@ -1,6 +1,6 @@
 /// DiaryPod — the primary [MaterialApp] widget.
 ///
-// Time-stamp: <Wednesday 2026-06-10 08:33:01 +1000 Graham Williams>
+// Time-stamp: <Friday 2026-07-03 08:53:01 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -82,10 +82,9 @@ class AppState extends State<App> {
         image: const AssetImage('assets/images/app_image.jpg'),
         logo: const AssetImage('assets/images/app_icon.png'),
         link: 'https://github.com/gjwgit/diarypod',
-        clientId:
-            'https://solidcommunity.au/apps/diarypod/client-profile.jsonld',
+        clientId: 'https://gjwgit.github.io/diarypod/client-profile.jsonld',
         redirectUris: [
-          'https://solidcommunity.au/apps/diarypod/redirect.html',
+          'https://gjwgit.github.io/diarypod/redirect.html',
           'com.togaware.diarypod://redirect',
           'http://localhost:4400/redirect',
         ],

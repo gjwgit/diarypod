@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Move to oidc fields on github [1.0.10 20260703 gjw]
 + Bug fix with X button which should reset index [1.0.9 20260626 gjw]
 + Repalce back arrow with BACK button [1.0.8 20260626 gjw]
 + Unify search bar rounded corners and + inside the field [1.0.7 20260626 gjw]

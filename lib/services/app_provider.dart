@@ -142,6 +142,17 @@ class AppProvider extends ChangeNotifier {
     await PodService.save(_entries);
   }
 
+  /// Clears all in-memory data and resets the one-shot load guard so the next
+  /// [loadFromPod] re-reads from the Pod. Call this on logout so a different
+  /// user logging in does not see the previous user's entries.
+  void reset() {
+    if (_testMode) return;
+    _entries = [];
+    _hasLoaded = false;
+    _loading = false;
+    notifyListeners();
+  }
+
   /// A stable content signature of the current in-memory entries, used to
   /// detect whether a reload from the Pod actually changed anything.
   /// Order-independent (sorted) so mere reordering is not a change.
