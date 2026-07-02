@@ -41,6 +41,17 @@ class _AppScaffoldState extends State<AppScaffold> {
     if (!mounted) return;
     // Capture context-dependent objects before any await.
     final provider = context.read<AppProvider>();
+
+    // Register a logout hook so that whenever the user logs out — via the app
+    // bar OR the status-bar login indicator — the in-memory entries and the
+    // one-shot load guard are cleared. Without this, logging back in as a
+    // different WebID (without restarting the app) shows the previous user's
+    // data because AppProvider lives above the login flow and its loadFromPod
+    // is guarded by _hasLoaded.
+    SolidAuthHandler.instance.configure(
+      SolidAuthConfig(onLogout: provider.reset),
+    );
+
     // Load data from Pod.
     await provider.loadFromPod();
     // Initialise encryption keys.
@@ -99,13 +110,6 @@ class _AppScaffoldState extends State<AppScaffold> {
         readmeUrl: 'https://gjwgit.github.io/diarypod',
       ),
       themeToggle: const SolidThemeToggleConfig(enabled: true),
-      onLogout: (context) {
-        // Clear the previous user's in-memory entries (and the load guard) so
-        // logging in as a different WebID does not show stale data, then run
-        // the standard solidui logout flow.
-        context.read<AppProvider>().reset();
-        SolidAuthHandler.instance.handleLogout(context);
-      },
       appBar: SolidAppBarConfig(
         title: appName,
         versionConfig: const SolidVersionConfig(

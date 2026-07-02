@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Ensure data is cleared on an in-app logout [1.0.11 20260703 gjw]
 + Move to oidc fields on github [1.0.10 20260703 gjw]
 + Bug fix with X button which should reset index [1.0.9 20260626 gjw]
 + Repalce back arrow with BACK button [1.0.8 20260626 gjw]
