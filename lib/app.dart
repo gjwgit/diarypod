@@ -83,11 +83,11 @@ class AppState extends State<App> {
         logo: const AssetImage('assets/images/app_icon.png'),
         link: 'https://github.com/gjwgit/diarypod',
         clientId:
-            'https://solidcommunity.au/apps/diarypod/client-profile.jsonld',
+            'https://diarypod.solidcommunity.au/client-profile.jsonld',
         redirectUris: [
           'https://diarypod.solidcommunity.au/redirect.html',
           'com.togaware.diarypod://redirect',
-          'http://localhost:4400/redirect',
+          'http://localhost:4400/redirect.html',
         ],
         child: const AppScaffold(),
       ),
