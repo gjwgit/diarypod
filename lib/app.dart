@@ -85,7 +85,7 @@ class AppState extends State<App> {
         clientId:
             'https://solidcommunity.au/apps/diarypod/client-profile.jsonld',
         redirectUris: [
-          'https://solidcommunity.au/apps/diarypod/redirect.html',
+          'https://diarypod.solidcommunity.au/redirect.html',
           'com.togaware.diarypod://redirect',
           'http://localhost:4400/redirect',
         ],
