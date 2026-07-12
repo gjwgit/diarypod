@@ -25,6 +25,7 @@
 
 library;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:solidui/solidui.dart';
@@ -82,13 +83,13 @@ class AppState extends State<App> {
         image: const AssetImage('assets/images/app_image.jpg'),
         logo: const AssetImage('assets/images/app_icon.png'),
         link: 'https://github.com/gjwgit/diarypod',
-        clientId:
-            'https://solidcommunity.au/apps/diarypod/client-profile.jsonld',
-        redirectUris: [
-          'https://diarypod.solidcommunity.au/redirect.html',
-          'com.togaware.diarypod://redirect',
-          'http://localhost:4400/redirect',
-        ],
+        clientId: 'https://gjwgit.github.io/diarypod/client-profile.jsonld',
+        redirectUris: kIsWeb
+            ? ['${Uri.base.origin}/redirect.html']
+            : const [
+                'com.togaware.diarypod://redirect',
+                'http://localhost:4400/redirect.html',
+              ],
         child: const AppScaffold(),
       ),
     );
