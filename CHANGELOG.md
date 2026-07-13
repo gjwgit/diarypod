@@ -20,7 +20,7 @@ AU](https://solidcommunity.au) or directly:
 [dmg](https://solidcommunity.au/installers/diarypod-macos.dmg) or
 [zip](https://solidcommunity.au/installers/diarypod-macos.zip);
 + **Windows** as
-[inno](https://solidcommunity.au/installers/diarypod-windows-inno.exe)
+[exe](https://solidcommunity.au/installers/diarypod-windows-inno.exe)
 or [zip](https://solidcommunity.au/installers/diarypod-windows.zip).
 
 Contributions are welcome. Visit
