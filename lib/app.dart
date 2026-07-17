@@ -1,6 +1,6 @@
 /// DiaryPod — the primary [MaterialApp] widget.
 ///
-// Time-stamp: <Wednesday 2026-06-10 08:33:01 +1000 Graham Williams>
+// Time-stamp: <Friday 2026-07-17 11:54:59 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -88,7 +88,7 @@ class AppState extends State<App> {
             ? ['${Uri.base.origin}/redirect.html']
             : const [
                 'com.togaware.diarypod://redirect',
-                'http://localhost:4400/redirect.html',
+                'http://localhost:4400/redirect',
               ],
         child: const AppScaffold(),
       ),
