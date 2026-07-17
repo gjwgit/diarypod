@@ -22,7 +22,7 @@ import 'package:diarypod/constants/tooltips.dart';
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/edit_fields/entry_notes_field.dart';
 import 'package:diarypod/pages/edit_fields/entry_title_date_fields.dart';
-import 'package:diarypod/pages/entry_duplicate_handler.dart';
+import 'package:diarypod/pages/entry_duplicate.dart';
 import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
@@ -45,7 +45,7 @@ class EntryEdit extends StatefulWidget {
   State<EntryEdit> createState() => _EntryEditState();
 }
 
-class _EntryEditState extends State<EntryEdit> with EntryDuplicateHandler {
+class _EntryEditState extends State<EntryEdit> {
   late final TextEditingController _title;
   late final TextEditingController _note;
   late final TextEditingController _location;
@@ -335,7 +335,8 @@ class _EntryEditState extends State<EntryEdit> with EntryDuplicateHandler {
                   ''',
                   child: IconButton(
                     icon: const Icon(Icons.copy_outlined),
-                    onPressed: duplicateEntry,
+                    onPressed: () =>
+                        duplicateEntry(context, provider, widget.entry!),
                   ),
                 ),
               Padding(

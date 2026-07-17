@@ -14,9 +14,9 @@ import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
+import 'package:diarypod/pages/entry_duplicate.dart';
 import 'package:diarypod/pages/entry_edit.dart';
 import 'package:diarypod/screens/diary_io.dart';
 import 'package:diarypod/services/app_provider.dart';
@@ -118,38 +118,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
     if (confirmed == true && context.mounted) {
       provider.deleteEntry(entry.id);
-      try {
-        await provider.saveToPod();
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-        }
-      }
-    }
-  }
-
-  Future<void> _duplicateEntry(
-    BuildContext context,
-    AppProvider provider,
-    DiaryEntry entry,
-  ) async {
-    final now = DateTime.now();
-    final duplicate = entry.copyWith(
-      id: const Uuid().v4(),
-      eventDate: now,
-      createdAt: now,
-      modifiedAt: now,
-    );
-    final updated = await Navigator.of(context).push<DiaryEntry>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => EntryEdit(entry: duplicate),
-      ),
-    );
-    if (updated != null && context.mounted) {
-      provider.addEntry(updated);
       try {
         await provider.saveToPod();
       } catch (e) {
@@ -278,7 +246,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 onTap: () => _editEntry(context, provider, dayEntries[i]),
                 onDelete: () => _deleteEntry(context, provider, dayEntries[i]),
                 onDuplicate: () =>
-                    _duplicateEntry(context, provider, dayEntries[i]),
+                    duplicateEntry(context, provider, dayEntries[i]),
                 onPdf: () => DiaryIO.entryPdf(context, dayEntries[i]),
               ),
             ),

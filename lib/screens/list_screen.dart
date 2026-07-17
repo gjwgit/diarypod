@@ -14,9 +14,9 @@ import 'package:emacs_text_field/emacs_text_field.dart'
     show attachPrimarySelection;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
+import 'package:diarypod/pages/entry_duplicate.dart';
 import 'package:diarypod/pages/entry_edit.dart';
 import 'package:diarypod/screens/diary_io.dart';
 import 'package:diarypod/screens/list_screen_filter_sheet.dart';
@@ -143,36 +143,6 @@ class _ListScreenState extends State<ListScreen> {
     );
   }
 
-  Future<void> _duplicateEntry(
-    BuildContext context,
-    AppProvider provider,
-    DiaryEntry entry,
-  ) async {
-    final now = DateTime.now();
-    final duplicate = entry.copyWith(
-      id: const Uuid().v4(),
-      eventDate: now,
-      createdAt: now,
-      modifiedAt: now,
-    );
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => EntryEdit(
-          entry: duplicate,
-          onSave: (updated) {
-            if (provider.entries.any((e) => e.id == updated.id)) {
-              provider.updateEntry(updated);
-            } else {
-              provider.addEntry(updated);
-            }
-            _saveToPod(context, provider);
-          },
-        ),
-      ),
-    );
-  }
-
   Future<void> _deleteEntry(
     BuildContext context,
     AppProvider provider,
@@ -286,7 +256,7 @@ class _ListScreenState extends State<ListScreen> {
                 onTap: () => _editEntry(context, provider, entries[i]),
                 onDelete: () => _deleteEntry(context, provider, entries[i]),
                 onDuplicate: () =>
-                    _duplicateEntry(context, provider, entries[i]),
+                    duplicateEntry(context, provider, entries[i]),
                 onPdf: () => DiaryIO.entryPdf(context, entries[i]),
               ),
             ),
