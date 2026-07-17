@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:emacs_text_field/emacs_text_field.dart'
     show attachPrimarySelection;
 import 'package:gap/gap.dart';
+import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -21,6 +22,7 @@ import 'package:diarypod/constants/tooltips.dart';
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/edit_fields/entry_notes_field.dart';
 import 'package:diarypod/pages/edit_fields/entry_title_date_fields.dart';
+import 'package:diarypod/pages/entry_duplicate_handler.dart';
 import 'package:diarypod/services/app_provider.dart';
 import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
@@ -43,7 +45,7 @@ class EntryEdit extends StatefulWidget {
   State<EntryEdit> createState() => _EntryEditState();
 }
 
-class _EntryEditState extends State<EntryEdit> {
+class _EntryEditState extends State<EntryEdit> with EntryDuplicateHandler {
   late final TextEditingController _title;
   late final TextEditingController _note;
   late final TextEditingController _location;
@@ -320,6 +322,22 @@ class _EntryEditState extends State<EntryEdit> {
                 tooltip: 'Reference another note',
                 onPressed: _openReference,
               ),
+              // Duplicate is only meaningful for an already-saved entry.
+              if (!_isNew)
+                MarkdownTooltip(
+                  message: '''
+
+                  **Duplicate**
+
+                  Copy this entry with the date/time set to now and open
+                  the copy for editing.
+
+                  ''',
+                  child: IconButton(
+                    icon: const Icon(Icons.copy_outlined),
+                    onPressed: duplicateEntry,
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: FilledButton(

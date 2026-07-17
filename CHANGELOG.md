@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Allow DUPLICATE in entry view [1.0.14 20260717 gjw]
 + Updated oidc for chrome/web support [1.0.13 20260712 tonypioneer]
 + Update solidui/solidpod dependencies [1.0.12 20260703 gjw]
 + Ensure data is cleared on an in-app logout [1.0.11 20260703 gjw]
