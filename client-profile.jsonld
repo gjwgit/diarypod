@@ -6,12 +6,12 @@
   "redirect_uris": [
     "https://diarypod.solidcommunity.au/redirect.html",
     "com.togaware.diarypod://redirect",
-    "http://localhost:4400/redirect"
+    "http://localhost:4400/redirect.html"
   ],
   "post_logout_redirect_uris": [
     "https://diarypod.solidcommunity.au/redirect.html",
     "com.togaware.diarypod://redirect",
-    "http://localhost:4400/redirect"
+    "http://localhost:4400/redirect.html"
   ],
   "scope": "openid profile offline_access webid",
   "grant_types": [
