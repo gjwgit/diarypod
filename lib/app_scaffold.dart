@@ -1,6 +1,6 @@
 /// AppScaffold — main SolidScaffold for DiaryPod.
 ///
-// Time-stamp: <Friday 2026-05-01 14:16:40 +1000 Graham Williams>
+// Time-stamp: <Saturday 2026-07-18 10:59:42 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -96,7 +96,7 @@ class _AppScaffoldState extends State<AppScaffold> {
           - Markdown notes with inline preview
           - Tags for categorising entries
           - PDF export of your diary for any date range
-          - Backup and restore all entries as JSON
+          - Export and import entries as JSON
           - Import and export Markdown files
           - Security key management for encrypted data
           - Theme switching (light / dark / system)

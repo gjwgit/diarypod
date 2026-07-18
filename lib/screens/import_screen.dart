@@ -1,6 +1,6 @@
 /// ImportScreen — import/export UI for DiaryPod.
 ///
-// Time-stamp: <2026-04-30>
+// Time-stamp: <Saturday 2026-07-18 11:02:04 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -107,12 +107,12 @@ class _ImportScreenState extends State<ImportScreen> {
       final path = await DiaryIO.exportJson(provider);
       _setBackupMsg(
         path != null
-            ? 'Backup saved to $path'
+            ? 'JSON saved to $path'
             : 'File export is not supported on web.',
         error: path == null,
       );
     } catch (e) {
-      _setBackupMsg('Backup failed: $e', error: true);
+      _setBackupMsg('JSON export failed: $e', error: true);
     } finally {
       setState(() => _loading = false);
     }
@@ -183,13 +183,16 @@ class _ImportScreenState extends State<ImportScreen> {
           children: [
             // ── Backup & Restore ────────────────────────────────────────
             Text(
-              'Backup & Restore',
+              'Export & Import',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
             Text(
-              'Save a complete JSON backup of all your diary entries, or '
-              'restore everything from a previously saved backup file.',
+              'Save a complete JSON version of all your diary entries, or '
+              'restore everything from a previously saved JSON file. '
+              'Also note the encrypted backup option available through '
+              'your profile menu.',
+
               style: TextStyle(color: cs.onSurfaceVariant),
             ),
             if (_backupMsg != null) ...[
@@ -205,26 +208,26 @@ class _ImportScreenState extends State<ImportScreen> {
               children: [
                 MarkdownTooltip(
                   message:
-                      '**Export Backup**\n\n'
+                      '**Export JSON**\n\n'
                       'Save all $count entr$ies to a DiaryPod JSON backup '
                       'file on this device. Keep it somewhere safe so you '
                       'can restore everything later.',
                   child: FilledButton.icon(
                     icon: const Icon(Icons.download),
-                    label: const Text('Export Backup'),
+                    label: const Text('Export JSON'),
                     onPressed: _loading ? null : () => _exportJson(provider),
                   ),
                 ),
                 const SizedBox(width: 12),
                 MarkdownTooltip(
                   message:
-                      '**Import Backup**\n\n'
+                      '**Import JSON**\n\n'
                       'Restore diary entries from a previously saved DiaryPod '
                       'JSON backup file. Restored entries are merged with '
                       'your existing diary.',
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.upload),
-                    label: const Text('Import Backup'),
+                    label: const Text('Import JSON'),
                     onPressed: _loading
                         ? null
                         : () => _importJson(context, provider),

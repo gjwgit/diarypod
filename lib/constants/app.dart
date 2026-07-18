@@ -1,6 +1,6 @@
 /// Diary Pod - app-wide constants.
 ///
-// Time-stamp: <Thursday 2026-04-30 11:53:04 +1000 Graham Williams>
+// Time-stamp: <Saturday 2026-07-18 11:02:59 +1000 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -38,7 +38,7 @@ const String appTitle = 'DiaryPod - Notes from Meetings';
 const String listTitle = 'Diary';
 const String upcomingTitle = 'Upcoming';
 const String calendarTitle = 'Calendar';
-const String importExportTitle = 'Backup';
+const String importExportTitle = 'Export/Import';
 
 // ── Nav tooltips ─────────────────────────────────────────────────────────────
 
@@ -51,8 +51,8 @@ const String calendarTooltip =
     '**Calendar**\n\nView diary entries on a monthly calendar.';
 
 const String importExportTooltip =
-    '**Backup**\n\n'
-    'Back up and restore all entries, view your diary as a PDF, '
+    '**Export/Import**\n\n'
+    'Export and import all entries as JSON, or view your diary as a PDF, '
     'or import and export Markdown.';
 
 // ── Pod storage ───────────────────────────────────────────────────────────────
