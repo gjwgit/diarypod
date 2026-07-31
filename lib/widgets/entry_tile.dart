@@ -10,12 +10,12 @@ library;
 
 import 'package:flutter/material.dart';
 
-import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:gap/gap.dart';
 import 'package:intl/intl.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
+import 'package:diarypod/widgets/entry_note_preview.dart';
 
 class EntryTile extends StatelessWidget {
   final DiaryEntry entry;
@@ -33,6 +33,64 @@ class EntryTile extends StatelessWidget {
     required this.onPdf,
   });
 
+  /// The title, optional location and tag chips — the block that sits either
+  /// above the note preview (narrow) or to its left (wide).
+
+  Widget _titleBlock(ColorScheme cs, bool isFuture) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            if (isFuture) ...[
+              Icon(Icons.event_outlined, size: 14, color: cs.primary),
+              const Gap(4),
+            ],
+            Expanded(
+              child: Text(
+                entry.title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: cs.onSurface,
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (entry.location != null) ...[
+          const Gap(2),
+          Row(
+            children: [
+              Icon(Icons.place_outlined, size: 12, color: cs.onSurfaceVariant),
+              const Gap(3),
+              Text(
+                entry.location!,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
+            ],
+          ),
+        ],
+        if (entry.tags.isNotEmpty) ...[
+          const Gap(4),
+          Wrap(
+            spacing: 4,
+            runSpacing: 2,
+            children: entry.tags.map((t) {
+              return Chip(
+                label: Text(t),
+                labelStyle: const TextStyle(fontSize: 10),
+                padding: EdgeInsets.zero,
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -43,6 +101,11 @@ class EntryTile extends StatelessWidget {
     final isFuture = entry.isFuture;
     final isToday = !isFuture && eventDay == today;
     final isPast = !isFuture && !isToday;
+
+    // Same breakpoint as the reference panel's side-sheet/bottom-sheet
+    // choice, so "wide" means one thing across the app. 20260731 gjw
+
+    final isWide = MediaQuery.of(context).size.width >= 700;
 
     return Card(
       color: isFuture
@@ -137,120 +200,39 @@ class EntryTile extends StatelessWidget {
               const Gap(12),
 
               // ── Content ─────────────────────────────────────────────
+              //
+              // Wide screens have plenty of unused width beside the title
+              // block, so the note preview sits in that middle space; narrow
+              // screens keep it stacked below. 20260731 gjw
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (isFuture) ...[
-                          Icon(
-                            Icons.event_outlined,
-                            size: 14,
-                            color: cs.primary,
-                          ),
-                          const Gap(4),
-                        ],
-                        Expanded(
-                          child: Text(
-                            entry.title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: cs.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (entry.location != null) ...[
-                      const Gap(2),
-                      Row(
+                child: isWide && entry.hasNote
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.place_outlined,
-                            size: 12,
-                            color: cs.onSurfaceVariant,
-                          ),
-                          const Gap(3),
-                          Text(
-                            entry.location!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: cs.onSurfaceVariant,
+                          Expanded(flex: 2, child: _titleBlock(cs, isFuture)),
+                          const Gap(12),
+
+                          // Slightly taller than the stacked preview: the
+                          // column is narrower, so fewer words per line.
+                          Expanded(
+                            flex: 3,
+                            child: EntryNotePreview(
+                              note: entry.note,
+                              height: 72,
                             ),
                           ),
                         ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _titleBlock(cs, isFuture),
+                          if (entry.hasNote) ...[
+                            const Gap(4),
+                            EntryNotePreview(note: entry.note, height: 60),
+                          ],
+                        ],
                       ),
-                    ],
-                    if (entry.tags.isNotEmpty) ...[
-                      const Gap(4),
-                      Wrap(
-                        spacing: 4,
-                        runSpacing: 2,
-                        children: entry.tags.map((t) {
-                          return Chip(
-                            label: Text(t),
-                            labelStyle: const TextStyle(fontSize: 10),
-                            padding: EdgeInsets.zero,
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            visualDensity: VisualDensity.compact,
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                    if (entry.hasNote) ...[
-                      const Gap(4),
-                      SizedBox(
-                        height: 60,
-                        child: ClipRect(
-                          child: OverflowBox(
-                            alignment: Alignment.topLeft,
-                            maxHeight: double.infinity,
-                            child: MarkdownBody(
-                              data: entry.note,
-                              shrinkWrap: true,
-                              styleSheet: MarkdownStyleSheet(
-                                p: TextStyle(
-                                  fontSize: 12,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h1: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h2: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                h3: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                code: TextStyle(
-                                  fontSize: 11,
-                                  color: cs.onSurfaceVariant,
-                                  backgroundColor: cs.surfaceContainerHighest,
-                                ),
-                                blockquote: TextStyle(
-                                  fontSize: 12,
-                                  color: cs.onSurfaceVariant.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
               ),
               const Gap(4),
 

@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Put notes within middle of listing entry [1.0.17 20260731 gjw]
 + BACKUP -> Export [1.0.16 20260718 gjw]
 + Refator code for duplicate [1.0.15 20260717 gjw]
 + Allow DUPLICATE in entry view [1.0.14 20260717 gjw]
