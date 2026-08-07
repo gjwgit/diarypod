@@ -24,6 +24,7 @@ import 'package:diarypod/pages/edit_fields/entry_notes_field.dart';
 import 'package:diarypod/pages/edit_fields/entry_title_date_fields.dart';
 import 'package:diarypod/pages/entry_duplicate.dart';
 import 'package:diarypod/services/app_provider.dart';
+import 'package:diarypod/services/unsaved_changes_guard.dart';
 import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
@@ -39,7 +40,12 @@ class EntryEdit extends StatefulWidget {
 
   /// Called with the saved entry after the user taps Save.  The editor stays
   /// open; the caller is responsible for updating the provider and Pod.
-  final void Function(DiaryEntry)? onSave;
+  ///
+  /// Returns a future that completes when the Pod write is done.  It MUST be
+  /// awaited by the caller's implementation: closing the app window waits on
+  /// this before quitting, so a fire-and-forget write would be killed
+  /// mid-flight and the entry silently lost.
+  final Future<void> Function(DiaryEntry)? onSave;
 
   @override
   State<EntryEdit> createState() => _EntryEditState();
@@ -99,6 +105,8 @@ class _EntryEditState extends State<EntryEdit> {
     for (final c in [_title, _note, _location]) {
       c.addListener(_onChanged);
     }
+    // Let a whole-window close pause for this editor's unsaved changes too.
+    UnsavedChangesGuard.register(_resolveUnsavedOnWindowClose);
   }
 
   /// Snapshot the current field values as the last-saved baseline.
@@ -116,6 +124,7 @@ class _EntryEditState extends State<EntryEdit> {
 
   @override
   void dispose() {
+    UnsavedChangesGuard.unregister(_resolveUnsavedOnWindowClose);
     _removePrimaryTitle();
     _removePrimaryLocation();
     for (final c in [_title, _note, _location]) {
@@ -158,7 +167,7 @@ class _EntryEditState extends State<EntryEdit> {
     });
   }
 
-  void _save() {
+  Future<void> _save() async {
     final title = _title.text.trim();
     if (title.isEmpty) return;
     final now = DateTime.now();
@@ -172,9 +181,11 @@ class _EntryEditState extends State<EntryEdit> {
       createdAt: widget.entry?.createdAt ?? now,
       modifiedAt: now,
     );
-    widget.onSave?.call(entry);
     // Snapshot saved state so _hasChanges becomes false and Save deactivates.
+    // Done before the await so the button disables immediately.
     setState(_snapshotSavedState);
+    // Awaited so a window close can wait for the Pod write to complete.
+    await widget.onSave?.call(entry);
   }
 
   /// True when the user has modified any field since the last save.
@@ -192,14 +203,10 @@ class _EntryEditState extends State<EntryEdit> {
         tagsChanged;
   }
 
-  /// Pop the editor, but if there are unsaved changes first ask the user
-  /// whether to save, discard, or keep editing.
-  Future<void> _confirmDiscard() async {
-    if (!_hasChanges) {
-      Navigator.of(context).pop();
-      return;
-    }
-    final action = await showDialog<String>(
+  /// Ask whether to save, discard, or keep editing. Returns `'save'`,
+  /// `'discard'`, or `null` (keep editing / dialog dismissed).
+  Future<String?> _askUnsavedAction() {
+    return showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Unsaved changes'),
@@ -222,14 +229,44 @@ class _EntryEditState extends State<EntryEdit> {
         ],
       ),
     );
+  }
+
+  /// Pop the editor, but if there are unsaved changes first ask the user
+  /// whether to save, discard, or keep editing.
+  Future<void> _confirmDiscard() async {
+    if (!_hasChanges) {
+      Navigator.of(context).pop();
+      return;
+    }
+    final action = await _askUnsavedAction();
     if (!mounted) return;
     switch (action) {
       case 'save':
-        if (_title.text.trim().isNotEmpty) _save();
+        if (_title.text.trim().isNotEmpty) await _save();
       case 'discard':
         Navigator.of(context).pop();
       default:
         break;
+    }
+  }
+
+  /// Registered with [UnsavedChangesGuard] so closing the whole app window
+  /// prompts to save/discard just like the in-app Back button, without
+  /// popping the Navigator — the window is closing, not just this route.
+  Future<bool> _resolveUnsavedOnWindowClose() async {
+    if (!_hasChanges) return true;
+    final action = await _askUnsavedAction();
+    if (!mounted) return false;
+    switch (action) {
+      case 'save':
+        // Awaited: the window is destroyed the moment this returns true, so
+        // the Pod write must have finished first.
+        if (_title.text.trim().isNotEmpty) await _save();
+        return true;
+      case 'discard':
+        return true;
+      default:
+        return false;
     }
   }
 

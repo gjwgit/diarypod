@@ -63,6 +63,13 @@ void main() async {
   if (isDesktop) {
     await windowManager.ensureInitialized();
 
+    // 20260808 gjw Route the title-bar close button through
+    // onWindowClose (see app.dart) instead of quitting immediately, so an
+    // in-progress diary entry with unsaved changes can be saved or
+    // discarded rather than silently lost.
+
+    await windowManager.setPreventClose(true);
+
     // 20260520 gjw For our desktop app we tune various window oriented
     // settings.
 

@@ -51,19 +51,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
         entry: AppProvider.newEntry(
           eventDate: day ?? _selectedDay ?? DateTime.now(),
         ),
-        onSave: (entry) {
+        onSave: (entry) async {
           if (provider.entries.any((e) => e.id == entry.id)) {
             provider.updateEntry(entry);
           } else {
             provider.addEntry(entry);
           }
-          provider.saveToPod().catchError((e) {
+          try {
+            await provider.saveToPod();
+          } catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
             }
-          });
+          }
         },
       ),
     );
@@ -79,15 +81,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
         fullscreenDialog: true,
         builder: (_) => EntryEdit(
           entry: entry,
-          onSave: (updated) {
+          onSave: (updated) async {
             provider.updateEntry(updated);
-            provider.saveToPod().catchError((e) {
+            try {
+              await provider.saveToPod();
+            } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
               }
-            });
+            }
           },
         ),
       ),

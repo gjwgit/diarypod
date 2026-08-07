@@ -107,7 +107,7 @@ class _ListScreenState extends State<ListScreen> {
             ? AppProvider.newEntry().copyWith(title: _query.trim())
             : null,
         initialPreview: false,
-        onSave: (entry) {
+        onSave: (entry) async {
           // Use updateEntry if already saved once, addEntry on first save.
           if (provider.entries.any((e) => e.id == entry.id)) {
             provider.updateEntry(entry);
@@ -118,7 +118,7 @@ class _ListScreenState extends State<ListScreen> {
               setState(() => _query = '');
             }
           }
-          _saveToPod(context, provider);
+          await _saveToPod(context, provider);
         },
       ),
     );
@@ -134,9 +134,9 @@ class _ListScreenState extends State<ListScreen> {
         fullscreenDialog: true,
         builder: (_) => EntryEdit(
           entry: entry,
-          onSave: (updated) {
+          onSave: (updated) async {
             provider.updateEntry(updated);
-            _saveToPod(context, provider);
+            await _saveToPod(context, provider);
           },
         ),
       ),
