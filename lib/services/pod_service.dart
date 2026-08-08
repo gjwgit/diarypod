@@ -13,6 +13,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import 'package:solidpod/solidpod.dart';
+import 'package:solidui/solidui.dart';
 
 import 'package:diarypod/constants/app.dart';
 import 'package:diarypod/models/diary_entry.dart';
@@ -42,7 +43,9 @@ class PodService {
   static Future<void> save(List<DiaryEntry> entries) async {
     try {
       final ttl = _serialise(entries);
-      await writePod(diaryFilePathSuffix, ttl, overwrite: true);
+      await SolidPendingWrites.track(
+        writePod(diaryFilePathSuffix, ttl, overwrite: true),
+      );
     } catch (e) {
       debugPrint('[PodService.save] $e');
       rethrow;
