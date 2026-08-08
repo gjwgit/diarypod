@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
+import 'package:solidui/solidui.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
@@ -57,15 +58,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           } else {
             provider.addEntry(entry);
           }
-          try {
-            await provider.saveToPod();
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-            }
-          }
+          // Left to propagate: EntryEdit must see a failure so it does not
+          // mark itself saved.
+          await provider.saveToPod();
         },
       ),
     );
@@ -83,15 +78,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
           entry: entry,
           onSave: (updated) async {
             provider.updateEntry(updated);
-            try {
-              await provider.saveToPod();
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-              }
-            }
+            // Left to propagate: EntryEdit must see a failure so it does not
+            // mark itself saved.
+            await provider.saveToPod();
           },
         ),
       ),
@@ -125,11 +114,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
       try {
         await provider.saveToPod();
       } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-        }
+        // Errors need acknowledging, so report rather than flash a SnackBar.
+        SolidWriteFailures.report('Failed deleting the entry.\n\n$e');
       }
     }
   }

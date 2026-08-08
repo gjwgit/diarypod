@@ -47,15 +47,9 @@ Future<void> duplicateEntry(
           } else {
             provider.addEntry(updated);
           }
-          try {
-            await provider.saveToPod();
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-            }
-          }
+          // Left to propagate: EntryEdit must see a failure so it does not
+          // mark itself saved.
+          await provider.saveToPod();
         },
       ),
     ),

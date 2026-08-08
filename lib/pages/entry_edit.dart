@@ -63,6 +63,10 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   late bool _showPreview;
   String? _chordPrefix;
 
+  /// True while a save is in flight, so Save stays disabled without having to
+  /// pretend the entry is already saved.
+  bool _saving = false;
+
   // Snapshot of the last-saved state — used to compute _hasChanges.
   late String _savedTitle;
   late String _savedNote;
@@ -178,11 +182,19 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
       createdAt: widget.entry?.createdAt ?? now,
       modifiedAt: now,
     );
-    // Snapshot saved state so _hasChanges becomes false and Save deactivates.
-    // Done before the await so the button disables immediately.
-    setState(_snapshotSavedState);
-    // Awaited so a window close can wait for the Pod write to complete.
-    await widget.onSave?.call(entry);
+    setState(() => _saving = true);
+    try {
+      // Awaited so a window close can wait for the Pod write to complete.
+      await widget.onSave?.call(entry);
+      // Snapshot only once the write has actually landed. Marking the entry
+      // saved on a failed write would disable Save and stop the window-close
+      // prompt firing, losing the entry the user asked to keep.
+      if (mounted) setState(_snapshotSavedState);
+    } catch (e) {
+      SolidWriteFailures.report('Failed saving the entry.\n\n$e');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   /// True when the user has modified any field since the last save.
@@ -279,7 +291,7 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   @override
   Widget build(BuildContext context) {
     final provider = context.read<AppProvider>();
-    final canSave = _title.text.trim().isNotEmpty && _hasChanges;
+    final canSave = _title.text.trim().isNotEmpty && _hasChanges && !_saving;
 
     return Focus(
       onKeyEvent: (node, event) {

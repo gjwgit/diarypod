@@ -14,6 +14,7 @@ import 'package:emacs_text_field/emacs_text_field.dart'
     show attachPrimarySelection;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:solidui/solidui.dart';
 
 import 'package:diarypod/models/diary_entry.dart';
 import 'package:diarypod/pages/entry_duplicate.dart';
@@ -88,11 +89,8 @@ class _ListScreenState extends State<ListScreen> {
     try {
       await provider.saveToPod();
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-      }
+      // Errors need acknowledging, so report rather than flash a SnackBar.
+      SolidWriteFailures.report('Failed saving the entry.\n\n$e');
     }
   }
 
@@ -118,7 +116,9 @@ class _ListScreenState extends State<ListScreen> {
               setState(() => _query = '');
             }
           }
-          await _saveToPod(context, provider);
+          // Not via _saveToPod: EntryEdit must see a failure so it does not
+          // mark itself saved.
+          await provider.saveToPod();
         },
       ),
     );
@@ -136,7 +136,7 @@ class _ListScreenState extends State<ListScreen> {
           entry: entry,
           onSave: (updated) async {
             provider.updateEntry(updated);
-            await _saveToPod(context, provider);
+            await provider.saveToPod();
           },
         ),
       ),

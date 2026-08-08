@@ -90,7 +90,7 @@ class AppState extends State<App> {
                 'com.togaware.diarypod://redirect',
                 'http://localhost:4400/redirect.html',
               ],
-        child: const AppScaffold(),
+        child: const SolidWriteFailureListener(child: AppScaffold()),
       ),
     );
   }

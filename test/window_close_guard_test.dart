@@ -115,4 +115,37 @@ void main() {
     // No editor left registered, so nothing to resolve.
     expect(await SolidWindowCloseGuard.resolveAll(), isTrue);
   });
+
+  // Regression: the editor used to snapshot its state BEFORE awaiting the
+  // save, so a failed Pod write left it looking saved — Save disabled and the
+  // window-close prompt silenced, losing the entry.
+  testWidgets('a failed save leaves the entry unsaved and still prompting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        EntryEdit(onSave: (entry) async => throw Exception('pod unreachable')),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'New title');
+    await tester.pump();
+
+    // Save via the window-close prompt.
+    final future = SolidWindowCloseGuard.resolveAll();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await future;
+
+    // The write failed, so the editor must still consider itself dirty: a
+    // second close attempt has to prompt again rather than discard silently.
+    final second = SolidWindowCloseGuard.resolveAll();
+    await tester.pumpAndSettle();
+    expect(find.text('Unsaved changes'), findsOneWidget);
+
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+    expect(await second, isTrue);
+  });
 }
