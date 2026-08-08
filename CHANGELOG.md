@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Share window close save prompt via solidui [1.0.19 20260808 gjw]
 + Prompt to save unsaved entry on window close [1.0.18 20260808 gjw]
 + Put notes within middle of listing entry [1.0.17 20260731 gjw]
 + BACKUP -> Export [1.0.16 20260718 gjw]

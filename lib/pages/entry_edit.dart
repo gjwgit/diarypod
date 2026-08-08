@@ -16,6 +16,7 @@ import 'package:emacs_text_field/emacs_text_field.dart'
 import 'package:gap/gap.dart';
 import 'package:markdown_tooltip/markdown_tooltip.dart';
 import 'package:provider/provider.dart';
+import 'package:solidui/solidui.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:diarypod/constants/tooltips.dart';
@@ -24,7 +25,6 @@ import 'package:diarypod/pages/edit_fields/entry_notes_field.dart';
 import 'package:diarypod/pages/edit_fields/entry_title_date_fields.dart';
 import 'package:diarypod/pages/entry_duplicate.dart';
 import 'package:diarypod/services/app_provider.dart';
-import 'package:diarypod/services/unsaved_changes_guard.dart';
 import 'package:diarypod/widgets/reference_panel.dart';
 import 'package:diarypod/widgets/tag_autocomplete.dart';
 
@@ -51,7 +51,7 @@ class EntryEdit extends StatefulWidget {
   State<EntryEdit> createState() => _EntryEditState();
 }
 
-class _EntryEditState extends State<EntryEdit> {
+class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   late final TextEditingController _title;
   late final TextEditingController _note;
   late final TextEditingController _location;
@@ -105,8 +105,6 @@ class _EntryEditState extends State<EntryEdit> {
     for (final c in [_title, _note, _location]) {
       c.addListener(_onChanged);
     }
-    // Let a whole-window close pause for this editor's unsaved changes too.
-    UnsavedChangesGuard.register(_resolveUnsavedOnWindowClose);
   }
 
   /// Snapshot the current field values as the last-saved baseline.
@@ -124,7 +122,6 @@ class _EntryEditState extends State<EntryEdit> {
 
   @override
   void dispose() {
-    UnsavedChangesGuard.unregister(_resolveUnsavedOnWindowClose);
     _removePrimaryTitle();
     _removePrimaryLocation();
     for (final c in [_title, _note, _location]) {
@@ -203,33 +200,17 @@ class _EntryEditState extends State<EntryEdit> {
         tagsChanged;
   }
 
-  /// Ask whether to save, discard, or keep editing. Returns `'save'`,
-  /// `'discard'`, or `null` (keep editing / dialog dismissed).
-  Future<String?> _askUnsavedAction() {
-    return showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Unsaved changes'),
-        content: const Text(
-          'You have unsaved changes. Would you like to save them?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop('keep'),
-            child: const Text('Keep editing'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop('discard'),
-            child: const Text('Discard'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop('save'),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
+  // The window-close prompt comes from UnsavedChangesMixin, which needs to
+  // know what counts as unsaved and how to save it.
+
+  @override
+  bool get hasUnsavedChanges => _hasChanges;
+
+  @override
+  bool get canSaveUnsavedChanges => _title.text.trim().isNotEmpty;
+
+  @override
+  Future<void> saveUnsavedChanges() => _save();
 
   /// Pop the editor, but if there are unsaved changes first ask the user
   /// whether to save, discard, or keep editing.
@@ -238,35 +219,15 @@ class _EntryEditState extends State<EntryEdit> {
       Navigator.of(context).pop();
       return;
     }
-    final action = await _askUnsavedAction();
+    final action = await showUnsavedChangesDialog(context);
     if (!mounted) return;
     switch (action) {
-      case 'save':
-        if (_title.text.trim().isNotEmpty) await _save();
-      case 'discard':
+      case UnsavedChangesAction.save:
+        if (canSaveUnsavedChanges) await _save();
+      case UnsavedChangesAction.discard:
         Navigator.of(context).pop();
-      default:
+      case UnsavedChangesAction.keepEditing:
         break;
-    }
-  }
-
-  /// Registered with [UnsavedChangesGuard] so closing the whole app window
-  /// prompts to save/discard just like the in-app Back button, without
-  /// popping the Navigator — the window is closing, not just this route.
-  Future<bool> _resolveUnsavedOnWindowClose() async {
-    if (!_hasChanges) return true;
-    final action = await _askUnsavedAction();
-    if (!mounted) return false;
-    switch (action) {
-      case 'save':
-        // Awaited: the window is destroyed the moment this returns true, so
-        // the Pod write must have finished first.
-        if (_title.text.trim().isNotEmpty) await _save();
-        return true;
-      case 'discard':
-        return true;
-      default:
-        return false;
     }
   }
 

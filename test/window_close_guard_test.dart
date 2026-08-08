@@ -9,10 +9,10 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:solidui/solidui.dart';
 
 import 'package:diarypod/pages/entry_edit.dart';
 import 'package:diarypod/services/app_provider.dart';
-import 'package:diarypod/services/unsaved_changes_guard.dart';
 
 Widget wrap(Widget child) => ChangeNotifierProvider(
   create: (_) => AppProvider(),
@@ -25,7 +25,7 @@ void main() {
   ) async {
     await tester.pumpWidget(wrap(const EntryEdit()));
     await tester.pumpAndSettle();
-    expect(await UnsavedChangesGuard.resolveAll(), isTrue);
+    expect(await SolidWindowCloseGuard.resolveAll(), isTrue);
     expect(find.text('Unsaved changes'), findsNothing);
   });
 
@@ -37,7 +37,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'New title');
     await tester.pump();
 
-    final future = UnsavedChangesGuard.resolveAll();
+    final future = SolidWindowCloseGuard.resolveAll();
     await tester.pumpAndSettle();
     expect(find.text('Unsaved changes'), findsOneWidget);
 
@@ -54,7 +54,7 @@ void main() {
     await tester.enterText(find.byType(TextField).first, 'New title');
     await tester.pump();
 
-    final future = UnsavedChangesGuard.resolveAll();
+    final future = SolidWindowCloseGuard.resolveAll();
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Keep editing'));
@@ -88,7 +88,7 @@ void main() {
     await tester.pump();
 
     var resolved = false;
-    final future = UnsavedChangesGuard.resolveAll()
+    final future = SolidWindowCloseGuard.resolveAll()
       ..then((_) => resolved = true);
     await tester.pumpAndSettle();
 
@@ -113,6 +113,6 @@ void main() {
     await tester.pumpWidget(wrap(const SizedBox()));
     await tester.pumpAndSettle();
     // No editor left registered, so nothing to resolve.
-    expect(await UnsavedChangesGuard.resolveAll(), isTrue);
+    expect(await SolidWindowCloseGuard.resolveAll(), isTrue);
   });
 }

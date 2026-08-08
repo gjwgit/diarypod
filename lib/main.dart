@@ -63,12 +63,12 @@ void main() async {
   if (isDesktop) {
     await windowManager.ensureInitialized();
 
-    // 20260808 gjw Route the title-bar close button through
-    // onWindowClose (see app.dart) instead of quitting immediately, so an
-    // in-progress diary entry with unsaved changes can be saved or
-    // discarded rather than silently lost.
+    // 20260808 gjw Route the title-bar close button through the solidui
+    // close guard instead of quitting immediately, so an in-progress diary
+    // entry with unsaved changes can be saved or discarded rather than
+    // silently lost. EntryEdit registers a resolver with the guard.
 
-    await windowManager.setPreventClose(true);
+    await SolidWindowCloseGuard.enable();
 
     // 20260520 gjw For our desktop app we tune various window oriented
     // settings.

@@ -29,11 +29,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:solidui/solidui.dart';
-import 'package:window_manager/window_manager.dart';
 
 import 'package:diarypod/app_scaffold.dart';
 import 'package:diarypod/constants/app.dart';
-import 'package:diarypod/services/unsaved_changes_guard.dart';
 
 // 20260429 gjw This widget is the root of the application. On startup it will
 // call upon [SolidLogin] to connect to the user's Pod stored within the user's
@@ -46,31 +44,12 @@ class App extends StatefulWidget {
   State<App> createState() => AppState();
 }
 
-class AppState extends State<App> with WindowListener {
+class AppState extends State<App> {
   @override
   void initState() {
     super.initState();
     solidThemeNotifier.addListener(() => setState(() {}));
     solidThemeNotifier.initialize();
-    if (isDesktop) windowManager.addListener(this);
-  }
-
-  @override
-  void dispose() {
-    if (isDesktop) windowManager.removeListener(this);
-    super.dispose();
-  }
-
-  // 20260808 gjw Intercept the OS window-close (title-bar close button) so
-  // an in-progress diary entry with unsaved changes gets the same
-  // save/discard/keep-editing prompt as the in-app Back button, instead of
-  // being silently lost. Relies on [windowManager.setPreventClose] being
-  // enabled in main() so this listener fires instead of an immediate close.
-  @override
-  void onWindowClose() async {
-    if (await UnsavedChangesGuard.resolveAll()) {
-      await windowManager.destroy();
-    }
   }
 
   @override
