@@ -136,7 +136,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
-    await future;
+
+    // The write failed, so the close must be aborted — resolving true here
+    // would destroy the window over the top of the unsaved entry.
+    expect(await future, isFalse);
 
     // The write failed, so the editor must still consider itself dirty: a
     // second close attempt has to prompt again rather than discard silently.

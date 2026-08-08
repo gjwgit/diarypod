@@ -168,9 +168,10 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
     });
   }
 
-  Future<void> _save() async {
+  /// Saves the entry, reporting whether the write actually reached the Pod.
+  Future<bool> _save() async {
     final title = _title.text.trim();
-    if (title.isEmpty) return;
+    if (title.isEmpty) return false;
     final now = DateTime.now();
     final entry = DiaryEntry(
       id: _entryId,
@@ -190,8 +191,12 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
       // saved on a failed write would disable Save and stop the window-close
       // prompt firing, losing the entry the user asked to keep.
       if (mounted) setState(_snapshotSavedState);
+
+      return true;
     } catch (e) {
       SolidWriteFailures.report('Failed saving the entry.\n\n$e');
+
+      return false;
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -222,7 +227,7 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   bool get canSaveUnsavedChanges => _title.text.trim().isNotEmpty;
 
   @override
-  Future<void> saveUnsavedChanges() => _save();
+  Future<bool> saveUnsavedChanges() => _save();
 
   /// Pop the editor, but if there are unsaved changes first ask the user
   /// whether to save, discard, or keep editing.

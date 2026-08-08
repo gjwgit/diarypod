@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Keep the window open when a save fails on close [1.0.22 20260808 gjw]
 + Keep prompting when a save fails rather than losing the entry [1.0.21 20260808 gjw]
 + Wait for in-flight Pod writes before closing [1.0.20 20260808 gjw]
 + Share window close save prompt via solidui [1.0.19 20260808 gjw]
