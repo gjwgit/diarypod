@@ -39,6 +39,12 @@ class EntryNotePreview extends StatelessWidget {
             data: note,
             shrinkWrap: true,
             styleSheet: MarkdownStyleSheet(
+              // The default 8px between blocks leaves the bullets of a list
+              // looking widely spaced in so small a preview, and the default
+              // bullet style is a size larger than the text beside it.
+              // 20260809 gjw
+              blockSpacing: 2,
+              listBullet: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               p: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               h1: TextStyle(
                 fontSize: 13,
