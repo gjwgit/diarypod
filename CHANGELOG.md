@@ -42,7 +42,7 @@ Code](https://claude.com/product/claude-code).
 + Tighten the gap between markdown bullets in the listing [1.0.24 20260809 gjw]
 + Span tags and notes full width on narrow screens [1.0.23 20260809 gjw]
 + Keep the window open when a save fails on close [1.0.22 20260808 gjw]
-+ Keep prompting when a save fails rather than losing the entry [1.0.21 20260808 gjw]
++ Keep prompting on a failed save, not losing the entry [1.0.21 20260808 gjw]
 + Wait for in-flight Pod writes before closing [1.0.20 20260808 gjw]
 + Share window close save prompt via solidui [1.0.19 20260808 gjw]
 + Prompt to save unsaved entry on window close [1.0.18 20260808 gjw]
