@@ -65,6 +65,31 @@ void main() {
     expect(preview.dx, closeTo(title.dx, 1));
   });
 
+  testWidgets('narrow screen runs the tags and note under the buttons', (
+    tester,
+  ) async {
+    await pumpTile(tester, width: 500);
+    final delete = tester.getRect(find.byIcon(Icons.delete_outline));
+    // The buttons share the title's line, so the tags and the note preview
+    // extend past them rather than wrapping in a narrower column.
+    expect(tester.getRect(find.byType(Chip)).top, greaterThan(delete.top));
+    expect(
+      tester.getRect(find.byType(EntryNotePreview)).right,
+      greaterThan(delete.left),
+    );
+  });
+
+  testWidgets('wide screen keeps the note clear of the buttons', (
+    tester,
+  ) async {
+    await pumpTile(tester, width: 1000);
+    final delete = tester.getRect(find.byIcon(Icons.delete_outline));
+    expect(
+      tester.getRect(find.byType(EntryNotePreview)).right,
+      lessThanOrEqualTo(delete.left),
+    );
+  });
+
   testWidgets('no preview is built for an entry without a note', (
     tester,
   ) async {

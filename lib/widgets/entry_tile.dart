@@ -40,6 +40,19 @@ class EntryTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _titleAndLocation(cs, isFuture),
+        if (entry.tags.isNotEmpty) ...[const Gap(4), _tagChips()],
+      ],
+    );
+  }
+
+  /// Title plus optional location — the part that shares its line with the
+  /// action buttons on a narrow screen.
+
+  Widget _titleAndLocation(ColorScheme cs, bool isFuture) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Row(
           children: [
             if (isFuture) ...[
@@ -71,24 +84,65 @@ class EntryTile extends StatelessWidget {
             ],
           ),
         ],
-        if (entry.tags.isNotEmpty) ...[
-          const Gap(4),
-          Wrap(
-            spacing: 4,
-            runSpacing: 2,
-            children: entry.tags.map((t) {
-              return Chip(
-                label: Text(t),
-                labelStyle: const TextStyle(fontSize: 10),
-                padding: EdgeInsets.zero,
-                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                visualDensity: VisualDensity.compact,
-              );
-            }).toList(),
-          ),
-        ],
       ],
     );
+  }
+
+  Widget _tagChips() {
+    return Wrap(
+      spacing: 4,
+      runSpacing: 2,
+      children: entry.tags.map((t) {
+        return Chip(
+          label: Text(t),
+          labelStyle: const TextStyle(fontSize: 10),
+          padding: EdgeInsets.zero,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+        );
+      }).toList(),
+    );
+  }
+
+  /// Duplicate / PDF / Delete — to the right of the whole tile when wide, and
+  /// beside the title (so tags and the note can run under them) when narrow.
+
+  List<Widget> _actions(ColorScheme cs) {
+    return [
+      // ── Duplicate ────────────────────────────────────────────
+      MarkdownTooltip(
+        message:
+            '**Duplicate**\n\nCopy this entry with the date/time '
+            'set to now and open it for editing.',
+        child: IconButton(
+          icon: const Icon(Icons.copy_outlined, size: 18),
+          onPressed: onDuplicate,
+        ),
+      ),
+
+      // ── PDF ──────────────────────────────────────────────────
+      MarkdownTooltip(
+        message:
+            '**PDF**\n\nPreview this entry as a PDF and optionally '
+            'save it to a file.',
+        child: IconButton(
+          icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+          onPressed: onPdf,
+        ),
+      ),
+
+      // ── Delete ──────────────────────────────────────────────
+      MarkdownTooltip(
+        message:
+            '**Delete**\n\nPermanently remove this entry. '
+            'This cannot be undone.',
+        child: IconButton(
+          icon: const Icon(Icons.delete_outline, size: 18),
+          color: cs.error,
+          onPressed: onDelete,
+        ),
+      ),
+    ];
   }
 
   @override
@@ -106,6 +160,12 @@ class EntryTile extends StatelessWidget {
     // choice, so "wide" means one thing across the app. 20260731 gjw
 
     final isWide = MediaQuery.of(context).size.width >= 700;
+
+    // The side-by-side layout only pays off when there is a note to put in
+    // the middle column; otherwise use the stacked layout, which keeps the
+    // buttons on the title's line. 20260809 gjw
+
+    final sideBySide = isWide && entry.hasNote;
 
     return Card(
       color: isFuture
@@ -205,7 +265,7 @@ class EntryTile extends StatelessWidget {
               // block, so the note preview sits in that middle space; narrow
               // screens keep it stacked below. 20260731 gjw
               Expanded(
-                child: isWide && entry.hasNote
+                child: sideBySide
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -226,7 +286,22 @@ class EntryTile extends StatelessWidget {
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _titleBlock(cs, isFuture),
+                          // Only the title shares its line with the buttons;
+                          // the tags and the note preview then run the full
+                          // width of the tile, using the space under the
+                          // buttons instead of wrapping early. 20260809 gjw
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: _titleAndLocation(cs, isFuture)),
+                              const Gap(4),
+                              ..._actions(cs),
+                            ],
+                          ),
+                          if (entry.tags.isNotEmpty) ...[
+                            const Gap(4),
+                            _tagChips(),
+                          ],
                           if (entry.hasNote) ...[
                             const Gap(4),
                             EntryNotePreview(note: entry.note, height: 60),
@@ -234,41 +309,7 @@ class EntryTile extends StatelessWidget {
                         ],
                       ),
               ),
-              const Gap(4),
-
-              // ── Duplicate ────────────────────────────────────────────
-              MarkdownTooltip(
-                message:
-                    '**Duplicate**\n\nCopy this entry with the date/time '
-                    'set to now and open it for editing.',
-                child: IconButton(
-                  icon: const Icon(Icons.copy_outlined, size: 18),
-                  onPressed: onDuplicate,
-                ),
-              ),
-
-              // ── PDF ──────────────────────────────────────────────────
-              MarkdownTooltip(
-                message:
-                    '**PDF**\n\nPreview this entry as a PDF and optionally '
-                    'save it to a file.',
-                child: IconButton(
-                  icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
-                  onPressed: onPdf,
-                ),
-              ),
-
-              // ── Delete ──────────────────────────────────────────────
-              MarkdownTooltip(
-                message:
-                    '**Delete**\n\nPermanently remove this entry. '
-                    'This cannot be undone.',
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  color: cs.error,
-                  onPressed: onDelete,
-                ),
-              ),
+              if (sideBySide) ...[const Gap(4), ..._actions(cs)],
             ],
           ),
         ),
