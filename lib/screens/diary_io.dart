@@ -60,15 +60,12 @@ class DiaryIO {
     BuildContext context,
     AppProvider provider,
   ) async {
-    final result = await FilePicker.pickFiles(
+    final file = await FilePicker.pickFile(
       dialogTitle: 'Select DiaryPod JSON backup',
       type: FileType.any,
-      withData: true,
     );
-    if (result == null || result.files.isEmpty) return null;
-    final file = result.files.first;
-    final bytes = file.bytes;
-    if (bytes == null) throw Exception('Could not read file.');
+    if (file == null) return null;
+    final bytes = await file.readAsBytes();
     final raw = jsonDecode(utf8.decode(bytes)) as List<dynamic>;
     final incoming = raw
         .map((e) => DiaryEntry.fromJson(e as Map<String, dynamic>))
@@ -137,16 +134,12 @@ class DiaryIO {
     BuildContext context,
     AppProvider provider,
   ) async {
-    final result = await FilePicker.pickFiles(
+    final file = await FilePicker.pickFile(
       dialogTitle: 'Select Org diary file',
       type: FileType.any,
-      withData: true,
     );
-    if (result == null || result.files.isEmpty) return null;
-    final file = result.files.first;
-    final bytes = file.bytes;
-    if (bytes == null) throw Exception('Could not read file.');
-    final incoming = parseOrg(utf8.decode(bytes));
+    if (file == null) return null;
+    final incoming = parseOrg(utf8.decode(await file.readAsBytes()));
     if (incoming.isEmpty) {
       throw Exception(
         'No diary entries found in "${file.name}".\n'
@@ -165,15 +158,15 @@ class DiaryIO {
     final json = const JsonEncoder.withIndent(
       '  ',
     ).convert(provider.entries.map((e) => e.toJson()).toList());
-    final savePath = await FilePicker.saveFile(
+    final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save JSON backup',
       fileName: 'diarypod_backup_${_ts()}.json',
       type: FileType.custom,
       allowedExtensions: ['json'],
+      bytes: utf8.encode(json),
     );
-    if (savePath == null) return null;
-    await File(savePath).writeAsBytes(utf8.encode(json));
-    return savePath;
+    if (savedUri == null) return null;
+    return _displayPath(savedUri);
   }
 
   // ── Markdown export ────────────────────────────────────────────────────────
@@ -196,15 +189,15 @@ class DiaryIO {
       buf.writeln('---');
       buf.writeln();
     }
-    final savePath = await FilePicker.saveFile(
+    final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save Markdown file',
       fileName: 'diarypod_diary_${_ts()}.md',
       type: FileType.custom,
       allowedExtensions: ['md'],
+      bytes: utf8.encode(buf.toString()),
     );
-    if (savePath == null) return null;
-    await File(savePath).writeAsBytes(utf8.encode(buf.toString()));
-    return savePath;
+    if (savedUri == null) return null;
+    return _displayPath(savedUri);
   }
 
   // ── Single-entry PDF ────────────────────────────────────────────────────────
@@ -223,7 +216,10 @@ class DiaryIO {
         build: (_) => [
           pw.Text(
             entry.title,
-            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            style: const pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+            ),
           ),
           pw.SizedBox(height: 4),
           pw.Text(
@@ -320,18 +316,18 @@ class DiaryIO {
     List<int> pdfBytes,
     String pdfName,
   ) async {
-    final savePath = await FilePicker.saveFile(
+    final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      bytes: Uint8List.fromList(pdfBytes),
     );
-    if (savePath == null) return;
-    await File(savePath).writeAsBytes(pdfBytes);
+    if (savedUri == null) return;
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Saved to $savePath')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Saved to ${_displayPath(savedUri)}')),
+    );
   }
 
   // ── PDF export ─────────────────────────────────────────────────────────────
@@ -353,7 +349,10 @@ class DiaryIO {
           children: [
             pw.Text(
               'DiaryPod - Diary Export',
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+              style: const pw.TextStyle(
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
             pw.Text(
               'Generated ${DateFormat('d MMMM yyyy').format(now)}  -  '
@@ -368,7 +367,10 @@ class DiaryIO {
           for (final e in entries) ...[
             pw.Text(
               e.title,
-              style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
+              style: const pw.TextStyle(
+                fontSize: 13,
+                fontWeight: pw.FontWeight.bold,
+              ),
             ),
             pw.SizedBox(height: 2),
             pw.Text(
@@ -419,14 +421,22 @@ class DiaryIO {
       await Printing.layoutPdf(onLayout: (_) async => pdfBytes, name: pdfName);
       return null;
     }
-    final savePath = await FilePicker.saveFile(
+    final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,
       type: FileType.custom,
       allowedExtensions: ['pdf'],
+      bytes: pdfBytes,
     );
-    if (savePath == null) return null;
-    await File(savePath).writeAsBytes(pdfBytes);
-    return savePath;
+    if (savedUri == null) return null;
+    return _displayPath(savedUri);
   }
+
+  /// The path to show the user for a [uri] returned by the file picker.
+  ///
+  /// file_picker writes the bytes itself and hands back a URI, whose scheme
+  /// varies by platform. A `file:` URI is converted back to a native path;
+  /// anything else (`content:` on Android, `blob:` on the web) is shown as is.
+  static String _displayPath(Uri uri) =>
+      uri.scheme == 'file' ? uri.toFilePath() : uri.toString();
 }
