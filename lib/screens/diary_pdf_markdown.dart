@@ -36,7 +36,7 @@ List<pw.Widget> _blockNode(md.Node node) {
           pw.SizedBox(height: 8),
           pw.Text(
             _plainText(node),
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 16,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.black,
@@ -49,7 +49,7 @@ List<pw.Widget> _blockNode(md.Node node) {
           pw.SizedBox(height: 6),
           pw.Text(
             _plainText(node),
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 14,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.black,
@@ -65,7 +65,7 @@ List<pw.Widget> _blockNode(md.Node node) {
           pw.SizedBox(height: 4),
           pw.Text(
             _plainText(node),
-            style: pw.TextStyle(
+            style: const pw.TextStyle(
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
               color: PdfColors.grey800,
@@ -287,7 +287,7 @@ pw.TextStyle _buildStyle({
     );
   }
   if (bold && italic) {
-    return pw.TextStyle(
+    return const pw.TextStyle(
       fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       fontStyle: pw.FontStyle.italic,
@@ -295,7 +295,7 @@ pw.TextStyle _buildStyle({
   }
   if (bold) return _baseStyle.copyWith(fontWeight: pw.FontWeight.bold);
   if (italic) {
-    return pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic);
+    return const pw.TextStyle(fontSize: 11, fontStyle: pw.FontStyle.italic);
   }
   return _baseStyle;
 }
