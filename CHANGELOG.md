@@ -39,6 +39,7 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
++ Updated file picker and apple configs [1.0.25 20260911 tonypioneer]
 + Tighten the gap between markdown bullets in the listing [1.0.24 20260809 gjw]
 + Span tags and notes full width on narrow screens [1.0.23 20260809 gjw]
 + Keep the window open when a save fails on close [1.0.22 20260808 gjw]
