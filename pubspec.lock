@@ -1075,21 +1075,23 @@ packages:
     source: sdk
     version: "0.0.0"
   solid_auth:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: solid_auth
-      sha256: cfcab00689cf971c0f1a840b3df86e1bce468c9530fb04615ebbf7dca87cd9ae
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.7"
+      path: "."
+      ref: "gjw/52_secure_token_store"
+      resolved-ref: "4487efe01607a629cea4c13793cbd5a3505a37a4"
+      url: "https://github.com/anusii/solid_auth.git"
+    source: git
+    version: "1.0.8"
   solidpod:
     dependency: "direct main"
     description:
-      name: solidpod
-      sha256: "5d5968b0a361c0a56de4b5fd6f1daf981407b5560a1ecb9bad1cd64cab5f201b"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.20"
+      path: "."
+      ref: "gjw/716_single_flight_session_restore"
+      resolved-ref: "81c6ab7b25d34a58d26d80d6942e724993825328"
+      url: "https://github.com/anusii/solidpod.git"
+    source: git
+    version: "1.0.22"
   solidui:
     dependency: "direct main"
     description:
