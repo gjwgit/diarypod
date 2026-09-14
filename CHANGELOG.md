@@ -39,7 +39,8 @@ Code](https://claude.com/product/claude-code).
 
 ## 1.0 Updated Key
 
-+ Update to solidui 1.0.43 [1.0.28 20260914 gjw]
++ Report offline rather than doing nothing on Login [1.0.29 20260914 gjw]
++ Login errors name the cause: internet, address or server [1.0.28 20260914 gjw]
 + Update to solidpod 1.0.22 and solidui 1.0.41 [1.0.27 20260914 gjw]
 + Remember the window size between sessions [1.0.26 20260913 gjw]
 + Updated file picker and apple configs [1.0.25 20260911 tonypioneer]
