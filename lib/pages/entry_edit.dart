@@ -67,6 +67,9 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   /// pretend the entry is already saved.
   bool _saving = false;
 
+  /// The save in flight, if any, so a window close can wait for it.
+  Future<bool>? _pendingSave;
+
   // Snapshot of the last-saved state — used to compute _hasChanges.
   late String _savedTitle;
   late String _savedNote;
@@ -169,7 +172,11 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
   }
 
   /// Saves the entry, reporting whether the write actually reached the Pod.
-  Future<bool> _save() async {
+  /// A save already in flight is shared rather than started a second time.
+  Future<bool> _save() =>
+      _pendingSave ??= _write().whenComplete(() => _pendingSave = null);
+
+  Future<bool> _write() async {
     final title = _title.text.trim();
     if (title.isEmpty) return false;
     final now = DateTime.now();
@@ -228,6 +235,21 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
 
   @override
   Future<bool> saveUnsavedChanges() => _save();
+
+  // 20261029 gjw Closing the window while a Save is still writing to the Pod
+  // lost the entry: the snapshot is only taken once the write lands, so the
+  // close prompted as if nothing were saved, and Discard let the window go
+  // with the write still running. Wait for that save first, keep the window
+  // open if it failed, and only prompt for edits made since.
+
+  @override
+  Future<bool> resolveUnsavedOnWindowClose() async {
+    final pending = _pendingSave;
+    if (pending != null && !await pending) return false;
+    if (!mounted) return true;
+
+    return super.resolveUnsavedOnWindowClose();
+  }
 
   /// Pop the editor, but if there are unsaved changes first ask the user
   /// whether to save, discard, or keep editing.
@@ -365,7 +387,16 @@ class _EntryEditState extends State<EntryEdit> with UnsavedChangesMixin {
                 padding: const EdgeInsets.only(right: 8),
                 child: FilledButton(
                   onPressed: canSave ? _save : null,
-                  child: Text(_isNew ? 'Add' : 'Save'),
+
+                  // 20261029 gjw Spin in place of the label while the Pod
+                  // write runs, so it is clear the save (and any window close
+                  // waiting on it) is still in progress.
+                  child: _saving
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(_isNew ? 'Add' : 'Save'),
                 ),
               ),
             ],

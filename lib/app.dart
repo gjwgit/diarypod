@@ -1,6 +1,6 @@
 /// DiaryPod — the primary [MaterialApp] widget.
 ///
-// Time-stamp: <Friday 2026-07-17 11:57:42 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-10-29 12:54:20 +1100 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -77,7 +77,6 @@ class AppState extends State<App> {
       ),
       themeMode: solidThemeNotifier.themeMode,
       home: SolidLogin(
-        required: false,
         appDirectory: appDir,
         title: appTitle.replaceAll(' - ', '\n'),
         image: const AssetImage('assets/images/app_image.jpg'),

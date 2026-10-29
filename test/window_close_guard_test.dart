@@ -93,7 +93,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Save'));
-    await tester.pumpAndSettle();
+
+    // pump, not pumpAndSettle: the busy spinner never settles.
+
+    await tester.pump(const Duration(milliseconds: 500));
 
     // The Pod write is still in flight, so the guard must NOT have resolved
     // — otherwise the caller would destroy the window and lose the entry.
@@ -105,6 +108,54 @@ void main() {
 
     expect(await future, isTrue);
     expect(written, isTrue);
+  });
+
+  // Regression: closing the window while a Save tapped in the editor was
+  // still writing prompted as if nothing were saved, and Discard then let the
+  // window go mid-write, losing the entry.
+  testWidgets('window close during an editor Save waits without prompting', (
+    tester,
+  ) async {
+    final podWrite = Completer<void>();
+    var written = false;
+
+    await tester.pumpWidget(
+      wrap(
+        EntryEdit(
+          onSave: (entry) async {
+            await podWrite.future;
+            written = true;
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'New title');
+    await tester.pump();
+    await tester.tap(find.text('Add'));
+    await tester.pump();
+
+    var resolved = false;
+    final future = SolidWindowCloseGuard.resolveAll()
+      ..then((_) => resolved = true);
+
+    // pump, not pumpAndSettle: the busy spinner never settles.
+
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // No prompt, and the close is held until the write lands, with the busy
+    // indicator showing.
+    expect(find.text('Unsaved changes'), findsNothing);
+    expect(resolved, isFalse);
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    podWrite.complete();
+    await tester.pumpAndSettle();
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    expect(await future, isTrue);
+    expect(written, isTrue);
+    expect(find.text('Unsaved changes'), findsNothing);
   });
 
   testWidgets('editor unregisters its resolver on dispose', (tester) async {

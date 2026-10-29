@@ -161,8 +161,6 @@ class DiaryIO {
     final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save JSON backup',
       fileName: 'diarypod_backup_${_ts()}.json',
-      type: FileType.custom,
-      allowedExtensions: ['json'],
       bytes: utf8.encode(json),
     );
     if (savedUri == null) return null;
@@ -192,8 +190,6 @@ class DiaryIO {
     final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save Markdown file',
       fileName: 'diarypod_diary_${_ts()}.md',
-      type: FileType.custom,
-      allowedExtensions: ['md'],
       bytes: utf8.encode(buf.toString()),
     );
     if (savedUri == null) return null;
@@ -319,8 +315,6 @@ class DiaryIO {
     final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
       bytes: Uint8List.fromList(pdfBytes),
     );
     if (savedUri == null) return;
@@ -424,8 +418,6 @@ class DiaryIO {
     final savedUri = await FilePicker.saveFile(
       dialogTitle: 'Save PDF',
       fileName: pdfName,
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
       bytes: pdfBytes,
     );
     if (savedUri == null) return null;

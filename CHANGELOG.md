@@ -37,6 +37,10 @@ This app has been pair programmed by [Graham
 Williams](https://togaware.com/Graham.Williams.html) and [Claude
 Code](https://claude.com/product/claude-code).
 
+## 1.1 Review and tune
+
++ Close waits for a save in progress, shown by a spinner [1.1.0 20261029 gjw]
+
 ## 1.0 Updated Key
 
 + Report offline rather than doing nothing on Login [1.0.29 20260914 gjw]

@@ -1,6 +1,6 @@
 /// AppScaffold — main SolidScaffold for DiaryPod.
 ///
-// Time-stamp: <Saturday 2026-07-18 10:59:42 +1000 Graham Williams>
+// Time-stamp: <Thursday 2026-10-29 12:48:30 +1100 Graham Williams>
 ///
 /// Copyright (C) 2026, Togaware Pty Ltd
 ///
@@ -57,9 +57,28 @@ class _AppScaffoldState extends State<AppScaffold> {
     // Initialise encryption keys.
     try {
       if (!mounted) return;
-      await getKeyFromUserIfRequired(context, widget);
+      // 20261002 gjw Cancel on the security key prompt is not an error, and
+      // must not be treated as success.
+      //
+      // getKeyFromUserIfRequired returns false when the prompt was dismissed
+      // (solidui 1.3.0 widened it from void for exactly this). Before that,
+      // _isKeySaved was set true unconditionally, so the status bar claimed a
+      // cached key that was not there, and the Pod was then read with no key
+      // to decrypt it — "You must first set the security key!", once per
+      // file.
+      //
+      // Returning here leaves the user in the app with the prompt dismissed,
+      // which is what Cancel should mean. The key can still be entered from
+      // the status bar.
+
+      // NOTE diarypod calls loadFromPod() BEFORE this, unlike the other
+      // apps, so there is nothing after the prompt to guard — recording the
+      // real answer is the whole fix here. That ordering is worth a look
+      // separately: it reads the Pod before the key is asked for.
+
+      final hasKey = await getKeyFromUserIfRequired(context, widget);
       if (!mounted) return;
-      setState(() => _isKeySaved = true);
+      setState(() => _isKeySaved = hasKey);
     } on Exception catch (e) {
       debugPrint('[AppScaffold] key error: $e');
     }
@@ -107,7 +126,7 @@ class _AppScaffoldState extends State<AppScaffold> {
           web site.
 
           ''',
-        readmeUrl: 'https://gjwgit.github.io/diarypod',
+        docsUrl: 'https://gjwgit.github.io/diarypod',
       ),
       themeToggle: const SolidThemeToggleConfig(enabled: true),
       appBar: SolidAppBarConfig(
