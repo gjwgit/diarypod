@@ -11,6 +11,10 @@
 APP=$(basename "$(dirname "$(pwd)")")
 REP=$(git remote get-url origin | sed -E 's#.*[/:]([^/]+)/[^/]+(\.git)?$#\1#')
 
+# 20261030 gjw The installer host and folder are the app's install.host
+# and install.folder in .copier-answers.yml, rendered here by the
+# gjwgit/fluttertmpl Copier template.
+
 HOST=solidcommunity.au
 FLDR=/var/www/html/web/installers/
 DEST=${HOST}:${FLDR}
@@ -136,6 +140,73 @@ if [[ "${status}" == "completed" ]]; then
 
     echo ""
 
+    # 20261028 gjw The Flatpak is now built by the workflow too.
+    # Archived as <app>_<version>_amd64.flatpak beside the deb.
+
+    echo '******************** UPLOAD LINUX FLATPAK'
+
+    TARGET="${APP}_amd64.flatpak"
+
+    artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
+		    --jq '.artifacts[] | select(.name | endswith("-linux-flatpak")) | .id' | head -n 1)
+    if [[ -z "${artifactId}" ]]; then
+	echo "No artifact found."
+    else
+	echo "artifact id: $artifactId"
+	gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
+	unzip -o artifact.zip
+	fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
+	touch ${fname} # Timestamp with current date/time
+	rm -f artifact.zip
+	echo  "Installing as ${DEST}${TARGET}"
+	rsync -avzh ${fname} ${DEST}${TARGET}
+	ssh ${HOST} "cd ${FLDR}; chmod 0644 ${TARGET}"
+	echo  "Archive as installers/ARCHIVE/${APP}_${version}_amd64.flatpak"
+	mv -f ${fname} ARCHIVE/${APP}_${version}_amd64.flatpak
+    fi
+
+    echo ""
+
+    # 20261028 gjw The apk and aab are now built and signed by the
+    # workflow. Archived as <app>-<version>.apk/.aab, the names `make
+    # upload_android` looks for.
+
+    for ext in apk aab; do
+
+	echo "******************** UPLOAD ANDROID ${ext^^}"
+
+	TARGET="${APP}.${ext}"
+
+	artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
+			--jq ".artifacts[] | select(.name | endswith(\"-android-${ext}\")) | .id" | head -n 1)
+
+	if [[ -z "${artifactId}" ]]; then
+	    echo "No artifact found."
+	else
+	    echo "artifact id: $artifactId"
+	    gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
+	    unzip -o artifact.zip
+	    fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
+	    touch ${fname} # Timestamp with current date/time
+	    rm -f artifact.zip
+
+	    # 20261031 gjw The aab is for the Play Store (make
+	    # upload_android) and is only archived, not offered for
+	    # download.
+
+	    if [[ "${ext}" == "apk" ]]; then
+		echo  "Installing as ${DEST}${TARGET}"
+		rsync -avzh ${fname} ${DEST}${TARGET}
+		ssh ${HOST} "cd ${FLDR}; chmod 0644 ${TARGET}"
+	    fi
+	    echo  "Archive as installers/ARCHIVE/${APP}-${version}.${ext}"
+	    mv -f ${fname} ARCHIVE/${APP}-${version}.${ext}
+	fi
+
+	echo ""
+
+    done
+
     echo '******************** UPLOAD LINUX ZIP'
 
     TARGET="${APP}-linux.zip"
@@ -161,33 +232,58 @@ if [[ "${status}" == "completed" ]]; then
 
     echo ""
 
-    echo '******************** UPLOAD MACOS ZIP ORIGINAL'
+    # 20261008 gjw <app>-macos.dmg and <app>-macos.zip are the default
+    # macOS installers. They are the notarized builds when there are any,
+    # and otherwise the ad-hoc builds, so an app without the Developer ID
+    # secrets still has a macOS download under the default name.
+    #
+    # Both are taken from the same, most recent, run. Artefacts outlive
+    # their run, so preferring any notarized artefact over any ad-hoc one
+    # would let an old notarized build shadow every newer ad-hoc build.
+
+    for ext in dmg zip; do
+
+	echo "******************** UPLOAD MACOS ${ext^^}"
+
+	TARGET="${APP}-macos.${ext}"
+
+	artifacts=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
+			--jq ".artifacts[] | select(.name | endswith(\"-notarized-macos-${ext}\") or endswith(\"-adhoc-macos-${ext}\")) | \"\\(.workflow_run.id) \\(.name) \\(.id)\"")
+	run=$(echo "${artifacts}" | head -n 1 | cut -d ' ' -f 1)
+	artifactId=$(echo "${artifacts}" | awk -v run="${run}" '$1 == run' \
+			 | sort -k 2 | tail -n 1 | cut -d ' ' -f 3)
+
+	if [[ -z "${artifactId}" ]]; then
+	    echo "No artifact found."
+	else
+	    echo "artifact id: $artifactId"
+	    gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
+	    unzip artifact.zip
+	    fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
+	    touch ${fname} # Timestamp with current date/time
+	    rm -f artifact.zip
+	    echo  "Installing ${fname} as ${DEST}${TARGET}"
+	    rsync -avzh ${fname} ${DEST}${TARGET}
+	    ssh ${HOST} "cd ${FLDR}; chmod 0644 ${TARGET}"
+
+	    # The ad-hoc build is archived by its own section below.
+
+	    if [[ "${fname}" == *-notarized-* ]]; then
+		echo  "Archive as installers/ARCHIVE/${APP}_${version}_notarized_macos.${ext}"
+		mv ${fname} ARCHIVE/${APP}_${version}_notarized_macos.${ext}
+	    else
+		rm -f ${fname}
+	    fi
+	fi
+
+	echo ""
+
+    done
+
+    echo '******************** UPLOAD MACOS DMG AD HOC'
 
     artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
-		    --jq '.artifacts[] | select(.name | endswith("-macos-zip")) | .id' | head -n 1)
-
-    if [[ -z "${artifactId}" ]]; then
-	echo "No artifact found."
-    else
-	echo "artifact id: $artifactId"
-	gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
-	unzip artifact.zip
-	fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
-	touch ${fname} # Timestamp with current date/time
-	rm -f artifact.zip
-	echo  "Installing as ${DEST}${APP}-macos.zip"
-	rsync -avzh ${APP}-macos.zip ${DEST}
-	ssh ${HOST} "cd ${FLDR}; chmod 0644 ${APP}-macos.zip"
-	echo  "Archive as installers/ARCHIVE/${APP}_${version}_macos.zip"
-	mv ${APP}-macos.zip ARCHIVE/${APP}_${version}_macos.zip
-    fi
-
-    echo ""
-
-    echo '******************** UPLOAD MACOS DMG ORIGINAL'
-
-    artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
-		    --jq '.artifacts[] | select(.name | endswith("-macos-dmg")) | .id' | head -n 1)
+		    --jq '.artifacts[] | select(.name | endswith("-adhoc-macos-dmg")) | .id' | head -n 1)
 
     if [[ -z "${artifactId}" ]]; then
 	echo "No artifact found."
@@ -209,11 +305,36 @@ if [[ "${status}" == "completed" ]]; then
 
     echo ""
 
-    # 20251222 gjw
+    echo '******************** UPLOAD MACOS ZIP AD HOC'
+
+    artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
+		    --jq '.artifacts[] | select(.name | endswith("-adhoc-macos-zip")) | .id' | head -n 1)
+
+    if [[ -z "${artifactId}" ]]; then
+	echo "No artifact found."
+    else
+	echo "artifact id: $artifactId"
+	gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
+	unzip artifact.zip
+	fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
+	touch ${fname} # Timestamp with current date/time
+	rm -f artifact.zip
+	echo  "Installing as ${DEST}${fname}"
+	rsync -avzh ${fname} ${DEST}
+	ssh ${HOST} "cd ${FLDR}; chmod 0644 ${fname}"
+	echo  "Archive as installers/ARCHIVE/${APP}_${version}_macos.zip"
+	mv ${fname} ARCHIVE/${APP}_${version}_macos.zip
+    fi
+
+    echo ""
+
+    # 20251222 gjw The macOS and iOS signed/certified builds are under
+    # development with the notepod app. Once it is working there we
+    # can migrate all other apps.
     #
-    #    The macOS and iOS signed/certified builds are under
-    #    development with the notepod app. Once it is working there we
-    #    can migrate all other apps.
+    # 20260921 gjw The above targets are the most recent work with
+    # todopod to get a working macOS installer. The final solution
+    # will be some combination of the below and the above.
 
     echo '******************** UPLOAD MACOS ZIP UNSIGNED'
 
@@ -307,6 +428,28 @@ if [[ "${status}" == "completed" ]]; then
 
     echo ""
 
+    # 20261031 gjw The ipa is only archived, not offered for download.
+
+    echo '******************** ARCHIVE iOS IPA'
+
+    artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
+		    --jq '.artifacts[] | select(.name | endswith("-ipa")) | .id' | head -n 1)
+
+    if [[ -z "${artifactId}" ]]; then
+	echo "No artifact found."
+    else
+	echo "artifact id: $artifactId"
+	gh api -H "Accept: application/vnd.github+json" repos/${REP}/${APP}/actions/artifacts/${artifactId}/zip > artifact.zip
+	unzip artifact.zip
+	fname=$(unzip -l artifact.zip | awk 'NR==4 {print $4}')
+	touch ${fname} # Timestamp with current date/time
+	rm -f artifact.zip
+	echo  "Archive as installers/ARCHIVE/${APP}_${version}.ipa"
+	mv ${fname} ARCHIVE/${APP}_${version}.ipa
+    fi
+
+    echo ""
+
     echo '******************** UPLOAD WINDOWS INNO'
 
     artifactId=$(gh api -H "Accept: application/vnd.github+json" /repos/${REP}/${APP}/actions/artifacts \
@@ -326,6 +469,15 @@ if [[ "${status}" == "completed" ]]; then
 	ssh ${HOST} "cd ${FLDR}; chmod 0644 ${fname}"
 	echo  "Archive as installers/ARCHIVE/${APP}_${version}_windows_inno.exe"
 	mv ${fname} ARCHIVE/${APP}_${version}_windows_inno.exe
+
+	# 20261030 gjw A winget manifest pins the installer's SHA256, so
+	# it needs a URL whose file never changes. Keep each version on
+	# the server under its archive name, beside the latest above.
+
+	VTARGET="${APP}_${version}_windows_inno.exe"
+	echo  "Installing as ${DEST}${VTARGET}"
+	rsync -avzh ARCHIVE/${VTARGET} ${DEST}${VTARGET}
+	ssh ${HOST} "cd ${FLDR}; chmod 0644 ${VTARGET}"
     fi
 
     echo ""

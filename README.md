@@ -46,7 +46,6 @@ AU](https://solidcommunity.au) repository:
 + **Web**
   [solidcommunity](https://diarypod.solidcommunity.au/);
 + **Android**
-  [aab](https://solidcommunity.au/installers/diarypod.aab) or
   [apk](https://solidcommunity.au/installers/diarypod.apk);
 + **GNU/Linux**
   [deb](https://solidcommunity.au/installers/diarypod_amd64.deb) or

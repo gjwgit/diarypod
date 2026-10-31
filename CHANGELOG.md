@@ -4,24 +4,9 @@ Noted below are the high level changes for the app.  Each update
 includes a short user-oriented description, version number, date, and
 developer.
 
-You can run the app in your
-[**browser**](https://diarypod.solidcommunity.au) or else download and
-install locally the latest version from the [Solid Community
-AU](https://solidcommunity.au) or directly:
-
-+ **Android** as
-[aab](https://solidcommunity.au/installers/diarypod.aab) or
-[apk](https://solidcommunity.au/installers/diarypod.apk);
-+ **GNU/Linux** as
-[deb](https://solidcommunity.au/installers/diarypod_amd64.deb) or
-[snap](https://solidcommunity.au/installers/diarypod_amd64.snap) or
-[zip](https://solidcommunity.au/installers/diarypod-linux.zip);
-+ **macOS** as
-[dmg](https://solidcommunity.au/installers/diarypod-macos.dmg) or
-[zip](https://solidcommunity.au/installers/diarypod-macos.zip);
-+ **Windows** as
-[exe](https://solidcommunity.au/installers/diarypod-windows-inno.exe)
-or [zip](https://solidcommunity.au/installers/diarypod-windows.zip).
+See the [Install
+Guide](https://gjwgit.github.io/diarypod/INSTALL.html) for
+installation instructions on any platform.
 
 Contributions are welcome. Visit
 [github](https://github.com/gjwgit/diarypod) to submit an issue or, even
@@ -36,6 +21,10 @@ then please show some ❤️ and tap on the star at
 This app has been pair programmed by [Graham
 Williams](https://togaware.com/Graham.Williams.html) and [Claude
 Code](https://claude.com/product/claude-code).
+
+## 1.2 Migrate to using Copier for Templates
+
++ Move to copier [1.2.0 20261101 gjw]
 
 ## 1.1 Review and tune
 

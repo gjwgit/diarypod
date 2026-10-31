@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD013 -->
 
-# Diary Pod Installers
+# DiaryPod Installers
 
 Flutter supports multiple platform targets. Flutter based apps can run
 native on Android, iOS, Linux, MacOS, and Windows, as well as directly
@@ -17,8 +17,8 @@ Run the app online: [**web**](https://diarypod.solidcommunity.au).
 Download the latest version:
 
 + **Android**
-  [aab](https://solidcommunity.au/installers/diarypod.aab) or
   [apk](https://solidcommunity.au/installers/diarypod.apk);
+
 + **GNU/Linux**
   [deb](https://solidcommunity.au/installers/diarypod_amd64.deb) or
   [snap](https://solidcommunity.au/installers/diarypod_amd64.snap) or
@@ -128,7 +128,7 @@ app. The app should run without the warning next time.
 ## Web -- No Installation Required
 
 No installer is required for a browser based experience of
-Diarypod. Simply visit
+DiaryPod. Simply visit
 [https://diarypod.solidcommunity.au](https://diarypod.solidcommunity.au).
 
 Also, your Web browser will provide an option in its menus to install

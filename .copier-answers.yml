@@ -1,0 +1,38 @@
+# Changes here will be overwritten by Copier. Change a value with
+# `copier update --data key=value` or by editing it here and running
+# `copier update`.
+_commit: v0.8.0
+_src_path: gh:gjwgit/fluttertmpl
+kind: app
+android: true
+app: diarypod
+owner: gjwgit
+copyright: 2026, Togaware Pty Ltd
+publisher: Togaware Pty Ltd
+name: DiaryPod
+summary: Private encrypted diary on your Solid Pod
+comment: Simple, Private, Secure Flutter Diary/Blogging App
+categories:
+- Office
+keywords:
+- diary
+- journal
+- notes
+- solid
+- pod
+build: {}
+deb: {}
+snap: {}
+windows:
+  appid: a79fb775-f420-4489-9900-8096ec14778f
+install:
+  folder: /var/www/html/web/installers/
+  host: solidcommunity.au
+  prod: true
+  url: https://solidcommunity.au/installers/
+stores: {}
+flatpak: null
+description: |
+  Keep date/time indexed notes from meetings etc securely and
+  privately in your personal online data store (POD) on any Solid
+  server on the cloud.
